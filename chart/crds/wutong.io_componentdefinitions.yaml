@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: componentdefinitions.rainbond.io
+  name: componentdefinitions.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
     categories:
       - oam

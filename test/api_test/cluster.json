@@ -110,8 +110,8 @@
         "debug": true
     },
     {
-        "id": "init_rainbond_cluster",
-        "name": "init rainbond cluster",
+        "id": "init_wutong_cluster",
+        "name": "init wutong cluster",
         "request": {
             "path": "/enterprise-server/api/v1/enterprises/{eid}/init-cluster",
             "params": [
@@ -136,8 +136,8 @@
         "debug": true
     },
     {
-        "id": "init_rainbond_cluster_status",
-        "name": "init rainbond cluster",
+        "id": "init_wutong_cluster_status",
+        "name": "init wutong cluster",
         "request": {
             "path": "/enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID}",
             "params": [

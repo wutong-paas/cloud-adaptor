@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -23,9 +23,9 @@ import (
 	"fmt"
 
 	"github.com/google/wire"
-	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/types"
+	v1 "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/types"
 )
 
 // ProviderSet is task providers.
@@ -46,8 +46,8 @@ var CreateKubernetesTask Type = "create_kubernetes"
 //UpdateKubernetesTask update kubernetes task
 var UpdateKubernetesTask Type = "update_kubernetes"
 
-//InitRainbondClusterTask init rainbond cluster task
-var InitRainbondClusterTask Type = "init_rainbond_cluster"
+//InitWutongClusterTask init wutong cluster task
+var InitWutongClusterTask Type = "init_wutong_cluster"
 
 //CreateTask create task
 func CreateTask(taskType Type, config interface{}) (Task, error) {
@@ -58,12 +58,12 @@ func CreateTask(taskType Type, config interface{}) (Task, error) {
 			return nil, fmt.Errorf("config must be *v1alpha1.KubernetesClusterConfig")
 		}
 		return &CreateKubernetesCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
-	case InitRainbondClusterTask:
-		cconfig, ok := config.(*types.InitRainbondConfig)
+	case InitWutongClusterTask:
+		cconfig, ok := config.(*types.InitWutongConfig)
 		if !ok {
-			return nil, fmt.Errorf("config must be *InitRainbondConfig")
+			return nil, fmt.Errorf("config must be *InitWutongConfig")
 		}
-		return &InitRainbondCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
+		return &InitWutongCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
 	case UpdateKubernetesTask:
 		cconfig, ok := config.(*v1alpha1.ExpansionNode)
 		if !ok {

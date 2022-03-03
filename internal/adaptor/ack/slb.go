@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
 )
 
 func (a *ackAdaptor) CreateLoadBalancer(clusterID, regionID string) (*v1alpha1.LoadBalancer, error) {
@@ -45,7 +45,7 @@ func (a *ackAdaptor) CreateLoadBalancer(clusterID, regionID string) (*v1alpha1.L
 	}
 	for _, slb := range res.LoadBalancers.LoadBalancer {
 		logrus.Infof("slb %s status is %s", slb.LoadBalancerId, slb.LoadBalancerStatus)
-		if slb.LoadBalancerStatus == "active" && slb.LoadBalancerName == "rainbond-region-lb_"+clusterID {
+		if slb.LoadBalancerStatus == "active" && slb.LoadBalancerName == "wutong-region-lb_"+clusterID {
 			return a.slbConver(slb), nil
 		}
 	}
@@ -56,7 +56,7 @@ func (a *ackAdaptor) CreateLoadBalancer(clusterID, regionID string) (*v1alpha1.L
 	request.InternetChargeType = "paybytraffic"
 	// 简约型实例，共享型实例已停售
 	request.LoadBalancerSpec = "slb.s1.small"
-	request.LoadBalancerName = "rainbond-region-lb_" + clusterID
+	request.LoadBalancerName = "wutong-region-lb_" + clusterID
 	request.PayType = "PayOnDemand"
 	response, err := client.CreateLoadBalancer(request)
 	if err != nil {
@@ -128,7 +128,7 @@ func (a *ackAdaptor) createVServerGroup(clusterID, regionID, vpcID, loadBalancer
 	}
 	if hresponse != nil {
 		for _, s := range hresponse.VServerGroups.VServerGroup {
-			if s.VServerGroupName == fmt.Sprintf("rainbond-gateway-nodes-%d", port) {
+			if s.VServerGroupName == fmt.Sprintf("wutong-gateway-nodes-%d", port) {
 				logrus.Infof("VServerGroupName is exist for cluster %s", clusterID)
 				return s.VServerGroupId, nil
 			}
@@ -137,7 +137,7 @@ func (a *ackAdaptor) createVServerGroup(clusterID, regionID, vpcID, loadBalancer
 	request := slb.CreateCreateVServerGroupRequest()
 	request.Scheme = "https"
 	request.LoadBalancerId = loadBalancerID
-	request.VServerGroupName = fmt.Sprintf("rainbond-gateway-nodes-%d", port)
+	request.VServerGroupName = fmt.Sprintf("wutong-gateway-nodes-%d", port)
 	ids, err := a.GetECSIDByIPs(regionID, vpcID, endpoints)
 	if err != nil {
 		return "", err

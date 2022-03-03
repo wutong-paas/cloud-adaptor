@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -29,8 +29,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/ginutil"
 	"gorm.io/gorm"
 	"k8s.io/client-go/util/homedir"
 )
@@ -59,12 +59,12 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	var result model.BackupListModelData
 	s.db.Model(&model.CloudAccessKey{}).Scan(&result.CloudAccessKeys)
 	s.db.Model(&model.CreateKubernetesTask{}).Scan(&result.CreateKubernetesTasks)
-	s.db.Model(&model.InitRainbondTask{}).Scan(&result.InitRainbondTasks)
+	s.db.Model(&model.InitWutongTask{}).Scan(&result.InitWutongTasks)
 	s.db.Model(&model.TaskEvent{}).Scan(&result.TaskEvents)
 	s.db.Model(&model.UpdateKubernetesTask{}).Scan(&result.UpdateKubernetesTasks)
 	s.db.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
 	s.db.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
-	s.db.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
+	s.db.Model(&model.WutongClusterConfig{}).Scan(&result.WutongClusterConfigs)
 	s.db.Model(&model.AppStore{}).Scan(&result.AppStores)
 	data, err := json.Marshal(result)
 	if err != nil {
@@ -221,7 +221,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				if err := tx.Where("1 = 1").Delete(&model.CreateKubernetesTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Where("1 = 1").Delete(&model.InitRainbondTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.InitWutongTask{}).Error; err != nil {
 					return err
 				}
 				if err := tx.Where("1 = 1").Delete(&model.UpdateKubernetesTask{}).Error; err != nil {
@@ -236,7 +236,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				if err := tx.Where("1 = 1").Delete(&model.RKECluster{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Where("1 = 1").Delete(&model.RainbondClusterConfig{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.WutongClusterConfig{}).Error; err != nil {
 					return err
 				}
 				if err := tx.Where("1 = 1").Delete(&model.AppStore{}).Error; err != nil {
@@ -253,7 +253,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 						return fmt.Errorf("recover createTask failure %s", err.Error())
 					}
 				}
-				for _, initTask := range data.InitRainbondTasks {
+				for _, initTask := range data.InitWutongTasks {
 					if err := tx.Create(&initTask).Error; err != nil {
 						return fmt.Errorf("recover initTask failure %s", err.Error())
 					}
@@ -279,9 +279,9 @@ func (s SystemHandler) Recover(c *gin.Context) {
 						return fmt.Errorf("recover rkeCluster failure %s", err.Error())
 					}
 				}
-				for _, rcc := range data.RainbondClusterConfigs {
+				for _, rcc := range data.WutongClusterConfigs {
 					if err := tx.Create(&rcc).Error; err != nil {
-						return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
+						return fmt.Errorf("recover wutongClusterConfigs failure %s", err.Error())
 					}
 				}
 				for _, appStore := range data.AppStores {

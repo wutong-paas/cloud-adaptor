@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -31,27 +31,27 @@ import (
 	"time"
 
 	"github.com/devfeel/mapper"
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"github.com/goodrain/rainbond-operator/util/rbdutil"
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
-	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
-	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/domain"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
-	"goodrain.com/cloud-adaptor/internal/operator"
-	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/internal/types"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util/constants"
-	"goodrain.com/cloud-adaptor/pkg/util/md5util"
-	"goodrain.com/cloud-adaptor/pkg/util/ssh"
-	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	v1 "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
+	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/factory"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/domain"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/internal/nsqc/producer"
+	"github.com/wutong-paas/cloud-adaptor/internal/operator"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/internal/types"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/md5util"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/ssh"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/uuidutil"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
+	"github.com/wutong-paas/wutong-operator/util/wtutil"
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
@@ -64,16 +64,16 @@ import (
 
 // ClusterUsecase cluster manage usecase
 type ClusterUsecase struct {
-	DB                        *gorm.DB
-	TaskProducer              producer.TaskProducer
-	CloudAccessKeyRepo        repo.CloudAccesskeyRepository
-	CreateKubernetesTaskRepo  repo.CreateKubernetesTaskRepository
-	InitRainbondTaskRepo      repo.InitRainbondTaskRepository
-	UpdateKubernetesTaskRepo  repo.UpdateKubernetesTaskRepository
-	TaskEventRepo             repo.TaskEventRepository
-	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository
-	rkeClusterRepo            repo.RKEClusterRepository
-	customClusterRepo         repo.CustomClusterRepository
+	DB                       *gorm.DB
+	TaskProducer             producer.TaskProducer
+	CloudAccessKeyRepo       repo.CloudAccesskeyRepository
+	CreateKubernetesTaskRepo repo.CreateKubernetesTaskRepository
+	InitWutongTaskRepo       repo.InitWutongTaskRepository
+	UpdateKubernetesTaskRepo repo.UpdateKubernetesTaskRepository
+	TaskEventRepo            repo.TaskEventRepository
+	WutongClusterConfigRepo  repo.WutongClusterConfigRepository
+	rkeClusterRepo           repo.RKEClusterRepository
+	customClusterRepo        repo.CustomClusterRepository
 }
 
 // NewClusterUsecase new cluster usecase
@@ -81,42 +81,42 @@ func NewClusterUsecase(db *gorm.DB,
 	taskProducer producer.TaskProducer,
 	cloudAccessKeyRepo repo.CloudAccesskeyRepository,
 	CreateKubernetesTaskRepo repo.CreateKubernetesTaskRepository,
-	InitRainbondTaskRepo repo.InitRainbondTaskRepository,
+	InitWutongTaskRepo repo.InitWutongTaskRepository,
 	UpdateKubernetesTaskRepo repo.UpdateKubernetesTaskRepository,
 	TaskEventRepo repo.TaskEventRepository,
-	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository,
+	WutongClusterConfigRepo repo.WutongClusterConfigRepository,
 	rkeClusterRepo repo.RKEClusterRepository,
 	customClusterRepo repo.CustomClusterRepository,
 ) *ClusterUsecase {
 	return &ClusterUsecase{
-		DB:                        db,
-		TaskProducer:              taskProducer,
-		CloudAccessKeyRepo:        cloudAccessKeyRepo,
-		CreateKubernetesTaskRepo:  CreateKubernetesTaskRepo,
-		InitRainbondTaskRepo:      InitRainbondTaskRepo,
-		UpdateKubernetesTaskRepo:  UpdateKubernetesTaskRepo,
-		TaskEventRepo:             TaskEventRepo,
-		RainbondClusterConfigRepo: RainbondClusterConfigRepo,
-		rkeClusterRepo:            rkeClusterRepo,
-		customClusterRepo:         customClusterRepo,
+		DB:                       db,
+		TaskProducer:             taskProducer,
+		CloudAccessKeyRepo:       cloudAccessKeyRepo,
+		CreateKubernetesTaskRepo: CreateKubernetesTaskRepo,
+		InitWutongTaskRepo:       InitWutongTaskRepo,
+		UpdateKubernetesTaskRepo: UpdateKubernetesTaskRepo,
+		TaskEventRepo:            TaskEventRepo,
+		WutongClusterConfigRepo:  WutongClusterConfigRepo,
+		rkeClusterRepo:           rkeClusterRepo,
+		customClusterRepo:        customClusterRepo,
 	}
 }
 
 //ListKubernetesCluster list kubernetes cluster
 func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error) {
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if re.ProviderName != "rke" && re.ProviderName != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(re.ProviderName, eid)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(re.ProviderName, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(re.ProviderName, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(re.ProviderName, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(re.ProviderName, "", "")
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
@@ -268,7 +268,7 @@ func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, eid, clusterID,
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	if _, err := kubeClient.AppsV1().Deployments(constants.Namespace).Get(ctx, "rainbond-operator", metav1.GetOptions{}); err != nil {
+	if _, err := kubeClient.AppsV1().Deployments(constants.Namespace).Get(ctx, "wutong-operator", metav1.GetOptions{}); err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil
 		}
@@ -276,7 +276,7 @@ func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, eid, clusterID,
 		return nil
 	}
 
-	return errors.WithStack(bcode.ErrRainbondClusterInstalled)
+	return errors.WithStack(bcode.ErrWutongClusterInstalled)
 }
 
 func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngineConfig) (v1alpha1.NodeList, error) {
@@ -302,10 +302,10 @@ func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngi
 	return nodeList, nil
 }
 
-//InitRainbondRegion init rainbond region
-func (c *ClusterUsecase) InitRainbondRegion(ctx context.Context, eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error) {
-	oldTask, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
-	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+//InitWutongRegion init wutong region
+func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v1.InitWutongRegionReq) (*model.InitWutongTask, error) {
+	oldTask, err := c.InitWutongTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
+	if err != nil && !errors.Is(err, bcode.ErrInitWutongTaskNotFound) {
 		return nil, err
 	}
 	if oldTask != nil && !req.Retry {
@@ -323,37 +323,37 @@ func (c *ClusterUsecase) InitRainbondRegion(ctx context.Context, eid string, req
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
 	}
-	newTask := &model.InitRainbondTask{
+	newTask := &model.InitWutongTask{
 		TaskID:       uuidutil.NewUUID(),
 		Provider:     req.Provider,
 		EnterpriseID: eid,
 		ClusterID:    req.ClusterID,
 	}
 
-	if err := c.InitRainbondTaskRepo.Create(newTask); err != nil {
-		logrus.Errorf("create init rainbond task failure %s", err.Error())
+	if err := c.InitWutongTaskRepo.Create(newTask); err != nil {
+		logrus.Errorf("create init wutong task failure %s", err.Error())
 		return nil, bcode.ServerErr
 	}
-	initTask := types.InitRainbondConfigMessage{
+	initTask := types.InitWutongConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
-		InitRainbondConfig: &types.InitRainbondConfig{
+		InitWutongConfig: &types.InitWutongConfig{
 			EnterpriseID: eid,
 			ClusterID:    newTask.ClusterID,
 			Provider:     newTask.Provider,
 		}}
 	if accessKey != nil {
-		initTask.InitRainbondConfig.AccessKey = accessKey.AccessKey
-		initTask.InitRainbondConfig.SecretKey = accessKey.SecretKey
+		initTask.InitWutongConfig.AccessKey = accessKey.AccessKey
+		initTask.InitWutongConfig.SecretKey = accessKey.SecretKey
 	}
-	if err := c.TaskProducer.SendInitRainbondRegionTask(initTask); err != nil {
-		logrus.Errorf("send init rainbond region task failure %s", err.Error())
+	if err := c.TaskProducer.SendInitWutongRegionTask(initTask); err != nil {
+		logrus.Errorf("send init wutong region task failure %s", err.Error())
 	} else {
-		if err := c.InitRainbondTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
+		if err := c.InitWutongTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
 			logrus.Errorf("update task status failure %s", err.Error())
 		}
 	}
-	logrus.Infof("send init rainbond region task %s to queue", newTask.TaskID)
+	logrus.Infof("send init wutong region task %s to queue", newTask.TaskID)
 	return newTask, nil
 }
 
@@ -449,11 +449,11 @@ func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) 
 	return 0, nil
 }
 
-//GetInitRainbondTaskByClusterID get init rainbond task
-func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error) {
-	task, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
+//GetInitWutongTaskByClusterID get init wutong task
+func (c *ClusterUsecase) GetInitWutongTaskByClusterID(eid, clusterID, providerName string) (*model.InitWutongTask, error) {
+	task, err := c.InitWutongTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
 	if err != nil {
-		if errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+		if errors.Is(err, bcode.ErrInitWutongTaskNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -640,9 +640,9 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 		}
 		logrus.Infof("set create kubernetes task %s status is complete", em.TaskID)
 	}
-	initRainbondTaskRepo := c.InitRainbondTaskRepo.Transaction(ctx)
-	if em.Message.StepType == "InitRainbondRegion" && em.Message.Status == "success" {
-		if err := initRainbondTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
+	initWutongTaskRepo := c.InitWutongTaskRepo.Transaction(ctx)
+	if em.Message.StepType == "InitWutongRegion" && em.Message.Status == "success" {
+		if err := initWutongTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, err
 		}
@@ -656,7 +656,7 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 		logrus.Infof("set init task %s status is inited", em.TaskID)
 	}
 	if em.Message.Status == "failure" {
-		if initErr := initRainbondTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+		if initErr := initWutongTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, initErr
 		}
@@ -706,22 +706,22 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 			}
 			logrus.Infof("set create kubernetes task %s status is complete", event.TaskID)
 		}
-		if event.StepType == "InitRainbondRegion" && event.Status == "success" {
-			if err := c.InitRainbondTaskRepo.UpdateStatus(eid, event.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
-				logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
+		if event.StepType == "InitWutongRegion" && event.Status == "success" {
+			if err := c.InitWutongTaskRepo.UpdateStatus(eid, event.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
+				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.StepType == "UpdateKubernetes" && event.Status == "success" {
 			if err := c.UpdateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
-				logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
+				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.Status == "failure" {
 			needSync = true
-			if initErr := c.InitRainbondTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
-				logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
+			if initErr := c.InitWutongTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 
 			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
@@ -748,14 +748,14 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 	var taskType domain.ClusterTaskType
 	task := &domain.ClusterTask{}
 
-	// init rainbond task
-	initRainbondTask, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	// init wutong task
+	initWutongTask, err := c.InitWutongTaskRepo.GetTask(eid, taskID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
-	if initRainbondTask != nil {
-		source = initRainbondTask
-		taskType = domain.ClusterTaskTypeInitRainbond
+	if initWutongTask != nil {
+		source = initWutongTask
+		taskType = domain.ClusterTaskTypeInitWutong
 	}
 
 	// create kubernetes task
@@ -844,8 +844,8 @@ func (c *ClusterUsecase) GetCreateKubernetesTask(eid, taskID string) (*model.Cre
 }
 
 //GetTaskRunningLists get runinig tasks
-func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error) {
-	tasks, err := c.InitRainbondTaskRepo.GetTaskRunningLists(eid)
+func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error) {
+	tasks, err := c.InitWutongTaskRepo.GetTaskRunningLists(eid)
 	if err != nil {
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -859,19 +859,19 @@ func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitRainbondT
 
 //GetKubeConfig get kube config file
 func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (string, error) {
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
 		if err != nil {
 			return "", bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return "", bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, "", "")
 		if err != nil {
 			return "", bcode.ErrorProviderNotSupport
 		}
@@ -885,19 +885,19 @@ func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (str
 
 //GetRegionConfig get region config
 func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error) {
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, "", "")
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
@@ -906,10 +906,10 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 	if err != nil {
 		return nil, bcode.ErrorKubeAPI
 	}
-	rri := operator.NewRainbondRegionInit(*kubeConfig, c.RainbondClusterConfigRepo)
-	status, err := rri.GetRainbondRegionStatus(clusterID)
+	rri := operator.NewWutongRegionInit(*kubeConfig, c.WutongClusterConfigRepo)
+	status, err := rri.GetWutongRegionStatus(clusterID)
 	if err != nil {
-		logrus.Errorf("get rainbond region status failure %s", err.Error())
+		logrus.Errorf("get wutong region status failure %s", err.Error())
 		return nil, bcode.ErrorGetRegionStatus
 	}
 	if status.RegionConfig != nil {
@@ -928,15 +928,15 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 	return nil, nil
 }
 
-//UpdateInitRainbondTaskStatus update init rainbond task status
-func (c *ClusterUsecase) UpdateInitRainbondTaskStatus(eid, taskID, status string) (*model.InitRainbondTask, error) {
-	if err := c.InitRainbondTaskRepo.UpdateStatus(eid, taskID, status); err != nil {
+//UpdateInitWutongTaskStatus update init wutong task status
+func (c *ClusterUsecase) UpdateInitWutongTaskStatus(eid, taskID, status string) (*model.InitWutongTask, error) {
+	if err := c.InitWutongTaskRepo.UpdateStatus(eid, taskID, status); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, bcode.NotFound
 		}
 		return nil, err
 	}
-	task, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	task, err := c.InitWutongTaskRepo.GetTask(eid, taskID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, bcode.NotFound
@@ -948,19 +948,19 @@ func (c *ClusterUsecase) UpdateInitRainbondTaskStatus(eid, taskID, status string
 
 //DeleteKubernetesCluster delete provider
 func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName string) error {
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
 		if err != nil {
 			return bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, "", "")
 		if err != nil {
 			return bcode.ErrorProviderNotSupport
 		}
@@ -970,19 +970,19 @@ func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName st
 
 //GetCluster get cluster
 func (c *ClusterUsecase) GetCluster(providerName, eid, clusterID string) (*v1alpha1.Cluster, error) {
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(providerName, "", "")
 		if err != nil {
 			return nil, bcode.ErrorProviderNotSupport
 		}
@@ -1053,28 +1053,28 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 	return newTask, nil
 }
 
-//SetRainbondClusterConfig set rainbond cluster config
-func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string) error {
-	var rbcc rainbondv1alpha1.RainbondCluster
+//SetWutongClusterConfig set wutong cluster config
+func (c *ClusterUsecase) SetWutongClusterConfig(eid, clusterID, config string) error {
+	var rbcc wutongv1alpha1.WutongCluster
 	if err := yaml.Unmarshal([]byte(config), &rbcc); err != nil {
-		logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+		logrus.Errorf("unmarshal wutong config failure %s", err.Error())
 		return bcode.ErrConfigInvalid
 	}
-	return c.RainbondClusterConfigRepo.Create(
-		&model.RainbondClusterConfig{
+	return c.WutongClusterConfigRepo.Create(
+		&model.WutongClusterConfig{
 			ClusterID:    clusterID,
 			Config:       config,
 			EnterpriseID: eid,
 		})
 }
 
-//GetRainbondClusterConfig get rainbond cluster config
-func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, string) {
-	rcc, _ := c.RainbondClusterConfigRepo.Get(clusterID)
+//GetWutongClusterConfig get wutong cluster config
+func (c *ClusterUsecase) GetWutongClusterConfig(eid, clusterID string) (*wutongv1alpha1.WutongCluster, string) {
+	rcc, _ := c.WutongClusterConfigRepo.Get(clusterID)
 	if rcc != nil {
-		var rbcc rainbondv1alpha1.RainbondCluster
+		var rbcc wutongv1alpha1.WutongCluster
 		if err := yaml.Unmarshal([]byte(rcc.Config), &rbcc); err != nil {
-			logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+			logrus.Errorf("unmarshal wutong config failure %s", err.Error())
 			return nil, rcc.Config
 		}
 		return &rbcc, rcc.Config
@@ -1082,25 +1082,25 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 	return nil, ""
 }
 
-//UninstallRainbondRegion uninstall rainbond region
-func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string) error {
+//UninstallWutongRegion uninstall wutong region
+func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) error {
 	if os.Getenv("DISABLE_UNINSTALL_REGION") == "true" {
-		logrus.Info("uninstall rainbond region is disable")
+		logrus.Info("uninstall wutong region is disable")
 		return nil
 	}
-	var ad adaptor.RainbondClusterAdaptor
+	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if provider != "rke" && provider != "custom" {
 		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(provider, eid)
 		if err != nil {
 			return bcode.ErrorNotFoundAccessKey
 		}
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(provider, accessKey.AccessKey, accessKey.SecretKey)
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(provider, accessKey.AccessKey, accessKey.SecretKey)
 		if err != nil {
 			return bcode.ErrorProviderNotSupport
 		}
 	} else {
-		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(provider, "", "")
+		ad, err = factory.GetCloudFactory().GetWutongClusterAdaptor(provider, "", "")
 		if err != nil {
 			return bcode.ErrorProviderNotSupport
 		}
@@ -1109,13 +1109,13 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 	if err != nil {
 		return err
 	}
-	rri := operator.NewRainbondRegionInit(*kubeconfig, c.RainbondClusterConfigRepo)
+	rri := operator.NewWutongRegionInit(*kubeconfig, c.WutongClusterConfigRepo)
 	go func() {
 		logrus.Infof("start uninstall cluster %s by provider %s", clusterID, provider)
 		if err := rri.UninstallRegion(clusterID); err != nil {
 			logrus.Errorf("uninstall region %s failure %s", err.Error())
 		}
-		if err := c.InitRainbondTaskRepo.DeleteTask(eid, provider, clusterID); err != nil {
+		if err := c.InitWutongTaskRepo.DeleteTask(eid, provider, clusterID); err != nil {
 			logrus.Errorf("delete region init task failure %s", err.Error())
 		}
 		logrus.Infof("complete uninstall cluster %s by provider %s", clusterID, provider)
@@ -1203,12 +1203,12 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes
 		}, nil
 	}
 	return &v1.InitNodeCmdRes{
-		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.rainbond.com/init_node_5.4 | bash`, pub),
+		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.wutong.com/init_node_5.4 | bash`, pub),
 	}, nil
 }
 
-// ListRainbondComponents -
-func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, eid, clusterID, providerName string) ([]*v1.RainbondComponent, error) {
+// ListWutongComponents -
+func (c *ClusterUsecase) ListWutongComponents(ctx context.Context, eid, clusterID, providerName string) ([]*v1.WutongComponent, error) {
 	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
 	if err != nil {
 		return nil, err
@@ -1220,37 +1220,37 @@ func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, eid, cluste
 		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())
 	}
 
-	return c.listRainbondComponents(ctx, kubeClient, runtimeClient)
+	return c.listWutongComponents(ctx, kubeClient, runtimeClient)
 }
 
-func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient kubernetes.Interface, runtimeClient client.Client) ([]*v1.RainbondComponent, error) {
-	pods, err := c.listRainbondPods(ctx, kubeClient)
+func (c *ClusterUsecase) listWutongComponents(ctx context.Context, kubeClient kubernetes.Interface, runtimeClient client.Client) ([]*v1.WutongComponent, error) {
+	pods, err := c.listWutongPods(ctx, kubeClient)
 	if err != nil {
 		return nil, err
 	}
 
-	components, err := c.listRbdComponent(ctx, runtimeClient)
+	components, err := c.listWutongComponent(ctx, runtimeClient)
 	if err != nil {
 		return nil, err
 	}
 
-	var res []*v1.RainbondComponent
+	var res []*v1.WutongComponent
 	for _, name := range components {
-		res = append(res, &v1.RainbondComponent{
+		res = append(res, &v1.WutongComponent{
 			App:  name,
 			Pods: pods[name],
 		})
 	}
 
-	sort.Sort(v1.ByRainbondComponentPodPhase(res))
+	sort.Sort(v1.ByWutongComponentPodPhase(res))
 	return res, nil
 }
 
-func (c *ClusterUsecase) listRbdComponent(ctx context.Context, runtimeClient client.Client) ([]string, error) {
+func (c *ClusterUsecase) listWutongComponent(ctx context.Context, runtimeClient client.Client) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	components := &rainbondv1alpha1.RbdComponentList{}
+	components := &wutongv1alpha1.WutongComponentList{}
 	err := runtimeClient.List(ctx, components, &client.ListOptions{
 		Namespace: constants.Namespace,
 	})
@@ -1262,17 +1262,17 @@ func (c *ClusterUsecase) listRbdComponent(ctx context.Context, runtimeClient cli
 	for _, cpt := range components.Items {
 		appNames = append(appNames, cpt.Name)
 	}
-	appNames = append(appNames, "rainbond-operator")
+	appNames = append(appNames, "wutong-operator")
 	return appNames, nil
 }
 
-func (c *ClusterUsecase) listRainbondPods(ctx context.Context, kubeClient kubernetes.Interface) (map[string][]corev1.Pod, error) {
+func (c *ClusterUsecase) listWutongPods(ctx context.Context, kubeClient kubernetes.Interface) (map[string][]corev1.Pod, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	// rainbond components
+	// wutong components
 	podList, err := kubeClient.CoreV1().Pods(constants.Namespace).List(ctx, metav1.ListOptions{
-		LabelSelector: fields.SelectorFromSet(rbdutil.LabelsForRainbond(nil)).String(),
+		LabelSelector: fields.SelectorFromSet(wtutil.LabelsForWutong(nil)).String(),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
@@ -1284,7 +1284,7 @@ func (c *ClusterUsecase) listRainbondPods(ctx context.Context, kubeClient kubern
 		labels := pod.Labels
 		appName := labels["name"]
 		if len(appName) == 0 {
-			logrus.Warningf("list rainbond components. label 'name' not found for pod(%s/%s)", pod.Namespace, pod.Name)
+			logrus.Warningf("list wutong components. label 'name' not found for pod(%s/%s)", pod.Namespace, pod.Name)
 			continue
 		}
 
@@ -1292,16 +1292,16 @@ func (c *ClusterUsecase) listRainbondPods(ctx context.Context, kubeClient kubern
 		pods[appName] = append(cptPods, pod)
 	}
 
-	// rainbond operator
+	// wutong operator
 	roPods, err := kubeClient.CoreV1().Pods(constants.Namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: fields.SelectorFromSet(map[string]string{
-			"release": "rainbond-operator",
+			"release": "wutong-operator",
 		}).String(),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	pods["rainbond-operator"] = roPods.Items
+	pods["wutong-operator"] = roPods.Items
 
 	return pods, nil
 }
@@ -1336,7 +1336,7 @@ func (c *ClusterUsecase) listPodEvents(ctx context.Context, kubeClient kubernete
 }
 
 func (c *ClusterUsecase) syncTaskEvents(task *domain.ClusterTask, events []*model.TaskEvent) error {
-	if task.TaskType != domain.ClusterTaskTypeInitRainbond || (task.ProviderName != "rke" && task.ProviderName != "custom") {
+	if task.TaskType != domain.ClusterTaskTypeInitWutong || (task.ProviderName != "rke" && task.ProviderName != "custom") {
 		return nil
 	}
 
@@ -1345,40 +1345,40 @@ func (c *ClusterUsecase) syncTaskEvents(task *domain.ClusterTask, events []*mode
 		return err
 	}
 
-	rri := operator.NewRainbondRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.RainbondClusterConfigRepo)
-	status, err := rri.GetRainbondRegionStatus(task.ClusterID)
+	rri := operator.NewWutongRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.WutongClusterConfigRepo)
+	status, err := rri.GetWutongRegionStatus(task.ClusterID)
 	if err != nil {
 		return err
 	}
 
 	var updates []string
-	// update InitRainbondRegionOperator event
+	// update InitWutongRegionOperator event
 	if status.OperatorReady {
-		event := c.getEvent("InitRainbondRegionOperator", events)
+		event := c.getEvent("InitWutongRegionOperator", events)
 		if event != nil {
 			updates = append(updates, event.EventID)
 		}
 	}
-	// update InitRainbondRegionImageHub event
-	if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); idx != -1 && condition.Status == corev1.ConditionTrue {
-		event := c.getEvent("InitRainbondRegionImageHub", events)
+	// update InitWutongRegionImageHub event
+	if idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeImageRepository); idx != -1 && condition.Status == corev1.ConditionTrue {
+		event := c.getEvent("InitWutongRegionImageHub", events)
 		if event != nil {
 			updates = append(updates, event.EventID)
 		}
 	}
-	// update InitRainbondRegionPackage event
-	for _, con := range status.RainbondPackage.Status.Conditions {
-		if con.Type == rainbondv1alpha1.Ready && con.Status == rainbondv1alpha1.Completed {
-			event := c.getEvent("InitRainbondRegionPackage", events)
+	// update InitWutongRegionPackage event
+	for _, con := range status.WutongPackage.Status.Conditions {
+		if con.Type == wutongv1alpha1.Ready && con.Status == wutongv1alpha1.Completed {
+			event := c.getEvent("InitWutongRegionPackage", events)
 			if event != nil {
 				updates = append(updates, event.EventID)
 			}
 		}
 	}
-	// update InitRainbondRegion event
-	idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+	// update InitWutongRegion event
+	idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeRunning)
 	if idx != -1 && condition.Status == corev1.ConditionTrue {
-		event := c.getEvent("InitRainbondRegion", events)
+		event := c.getEvent("InitWutongRegion", events)
 		if event != nil {
 			updates = append(updates, event.EventID)
 		}
@@ -1396,7 +1396,7 @@ func (c *ClusterUsecase) getEvent(stepType string, events []*model.TaskEvent) *m
 	return nil
 }
 
-func (c *ClusterUsecase) getTaskClusterStatus(task *model.InitRainbondTask) (string, error) {
+func (c *ClusterUsecase) getTaskClusterStatus(task *model.InitWutongTask) (string, error) {
 	if task.Provider != "rke" && task.Provider != "custom" {
 		return "", nil
 	}
@@ -1406,14 +1406,14 @@ func (c *ClusterUsecase) getTaskClusterStatus(task *model.InitRainbondTask) (str
 		return "", err
 	}
 
-	rri := operator.NewRainbondRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.RainbondClusterConfigRepo)
-	status, err := rri.GetRainbondRegionStatus(task.ClusterID)
+	rri := operator.NewWutongRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.WutongClusterConfigRepo)
+	status, err := rri.GetWutongRegionStatus(task.ClusterID)
 	if err != nil {
 		return "", err
 	}
 
-	// update InitRainbondRegion event
-	idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+	// update InitWutongRegion event
+	idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeRunning)
 	if idx != -1 && condition.Status == corev1.ConditionTrue {
 		return "complete", nil
 	}

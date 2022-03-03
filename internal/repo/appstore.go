@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -25,12 +25,12 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
-	"goodrain.com/cloud-adaptor/internal/domain"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/internal/repo/appstore"
-	"goodrain.com/cloud-adaptor/internal/repo/dao"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
+	"github.com/wutong-paas/cloud-adaptor/internal/domain"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo/appstore"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo/dao"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
 )
 
 // AppStoreRepo -

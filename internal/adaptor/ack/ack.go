@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2014-2017 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2014-2017 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -22,10 +22,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/versionutil"
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk"
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
@@ -33,10 +34,10 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/responses"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/ecs"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/vpc"
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -104,7 +105,7 @@ func getInstanceType(set string) []string {
 	}
 }
 
-func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (a *ackAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("AllocateResource", "", "start")
 	// select instance resource type
 	//Resource type to be selected
@@ -140,7 +141,7 @@ func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 		// create vpc
 		vpc := &v1alpha1.VPC{
 			RegionID:  config.Region,
-			VpcName:   "rainbond-default-vpc",
+			VpcName:   "wutong-default-vpc",
 			CidrBlock: "10.0.0.0/8",
 		}
 		if err := a.CreateVPC(vpc); err != nil {
@@ -155,7 +156,7 @@ func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 			RegionID:    vpc.RegionID,
 			VpcID:       vpc.VpcID,
 			CidrBlock:   "10.22.0.0/16",
-			VSwitchName: "rainbond-default-vswitch",
+			VSwitchName: "wutong-default-vswitch",
 			ZoneID:      zoneID,
 		}
 		if err := a.CreateVSwitch(vswitch); err != nil {
@@ -217,21 +218,21 @@ func (a *ackAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 				json.Unmarshal(versionByte, &info)
 				if err == nil {
 					cluster.CurrentVersion = info.String()
-					if !versionutil.CheckVersion(cluster.CurrentVersion){
-						cluster.Parameters["DisableRainbondInit"] = true
-						cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
+					if !versionutil.CheckVersion(cluster.CurrentVersion) {
+						cluster.Parameters["DisableWutongInit"] = true
+						cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Wutong支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
 					}
 				} else {
 					cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
-					cluster.Parameters["DisableRainbondInit"] = true
+					cluster.Parameters["DisableWutongInit"] = true
 				}
-				_, err = coreclient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
+				_, err = coreclient.CoreV1().ConfigMaps("wt-system").Get(ctx, "region-config", metav1.GetOptions{})
 				if err == nil {
-					cluster.RainbondInit = true
+					cluster.WutongInit = true
 				}
 			} else {
 				cluster.Parameters["Message"] = "无法创建集群通信客户端"
-				cluster.Parameters["DisableRainbondInit"] = true
+				cluster.Parameters["DisableWutongInit"] = true
 			}
 		}(cluster)
 	}
@@ -748,15 +749,15 @@ func (a *ackAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 	return list, nil
 }
 
-//GetRainbondInitConfig get rainbond init config
-func (a *ackAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+//GetWutongInitConfig get wutong init config
+func (a *ackAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
 
 	rollback("CreateRDS", "", "start")
 	//指定pod cidr作为白名单
 	regionDB := &v1alpha1.Database{
 		Name:      "region",
 		RegionID:  cluster.RegionID,
-		UserName:  "rainbond_region",
+		UserName:  "wutong_region",
 		VPCID:     cluster.VPCID,
 		ZoneID:    cluster.ZoneID,
 		PodCIDR:   cluster.PodCIDR,
@@ -821,7 +822,7 @@ func (a *ackAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster
 		rollback("SetSecurityGroup", err.Error(), "failure")
 	}
 	rollback("SetSecurityGroup", "80/80,443/443,8443/8443,6060/6060,10000/11000", "success")
-	return &v1alpha1.RainbondInitConfig{
+	return &v1alpha1.WutongInitConfig{
 		ClusterID:      cluster.ClusterID,
 		RegionDatabase: regionDB,
 		NasServer:      nasMountDomain,

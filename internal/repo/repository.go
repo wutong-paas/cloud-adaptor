@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -19,7 +19,7 @@
 package repo
 
 import (
-	"goodrain.com/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
 	"gorm.io/gorm"
 )
 
@@ -40,15 +40,15 @@ type CreateKubernetesTaskRepository interface {
 	GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error)
 }
 
-//InitRainbondTaskRepository init rainbond region task
-type InitRainbondTaskRepository interface {
-	Transaction(tx *gorm.DB) InitRainbondTaskRepository
-	Create(ent *model.InitRainbondTask) error
-	GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitRainbondTask, error)
+//InitWutongTaskRepository init wutong region task
+type InitWutongTaskRepository interface {
+	Transaction(tx *gorm.DB) InitWutongTaskRepository
+	Create(ent *model.InitWutongTask) error
+	GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitWutongTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
-	GetTask(eid string, taskID string) (*model.InitRainbondTask, error)
+	GetTask(eid string, taskID string) (*model.InitWutongTask, error)
 	DeleteTask(eid string, providerName, clusterID string) error
-	GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error)
+	GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error)
 }
 
 //UpdateKubernetesTaskRepository -
@@ -69,10 +69,10 @@ type TaskEventRepository interface {
 	UpdateStatusInBatch(eventIDs []string, status string) error
 }
 
-//RainbondClusterConfigRepository -
-type RainbondClusterConfigRepository interface {
-	Create(ent *model.RainbondClusterConfig) error
-	Get(clusterID string) (*model.RainbondClusterConfig, error)
+//WutongClusterConfigRepository -
+type WutongClusterConfigRepository interface {
+	Create(ent *model.WutongClusterConfig) error
+	Get(clusterID string) (*model.WutongClusterConfig, error)
 }
 
 // RKEClusterRepository -

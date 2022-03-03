@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -21,16 +21,17 @@ package rke
 import (
 	"context"
 	"fmt"
-	"goodrain.com/cloud-adaptor/internal/repo"
 	"testing"
 
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/datastore"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/datastore"
 )
 
 func TestCreateCluster(t *testing.T) {
 	rke := &rkeAdaptor{}
-	rke.CreateRainbondKubernetes(context.TODO(), "test", &v1alpha1.KubernetesClusterConfig{
+	rke.CreateWutongKubernetes(context.TODO(), "test", &v1alpha1.KubernetesClusterConfig{
 		Nodes: []v1alpha1.ConfigNode{
 			{
 				IP:    "192.168.56.104",

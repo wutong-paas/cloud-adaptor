@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: rbdcomponents.rainbond.io
+  name: wutongcomponents.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
-    kind: RbdComponent
-    listKind: RbdComponentList
-    plural: rbdcomponents
-    singular: rbdcomponent
+    kind: WutongComponent
+    listKind: WutongComponentList
+    plural: wutongcomponents
+    singular: wutongcomponent
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RbdComponent is the Schema for the rbdcomponents API
+        description: WutongComponent is the Schema for the wutongcomponents API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: RbdComponentSpec defines the desired state of RbdComponent
+            description: WutongComponentSpec defines the desired state of WutongComponent
             properties:
               args:
                 description: 'Arguments to the entrypoint. The docker image''s CMD
@@ -1670,13 +1670,13 @@ spec:
             - priorityComponent
             type: object
           status:
-            description: RbdComponentStatus defines the observed state of RbdComponent
+            description: WutongComponentStatus defines the observed state of WutongComponent
             properties:
               conditions:
-                description: Current state of rainbond component.
+                description: Current state of wutong component.
                 items:
-                  description: RbdComponentCondition contains details for the current
-                    condition of this rbdcomponent.
+                  description: WutongComponentCondition contains details for the current
+                    condition of this wutongcomponent.
                   properties:
                     lastTransitionTime:
                       description: Last time the condition transitioned from one status

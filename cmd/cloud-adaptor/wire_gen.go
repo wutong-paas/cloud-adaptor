@@ -8,23 +8,23 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
-	"goodrain.com/cloud-adaptor/internal/handler"
-	"goodrain.com/cloud-adaptor/internal/middleware"
-	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
-	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/internal/repo/appstore"
-	"goodrain.com/cloud-adaptor/internal/repo/dao"
-	"goodrain.com/cloud-adaptor/internal/task"
-	"goodrain.com/cloud-adaptor/internal/types"
-	"goodrain.com/cloud-adaptor/internal/usecase"
+	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
+	"github.com/wutong-paas/cloud-adaptor/internal/handler"
+	"github.com/wutong-paas/cloud-adaptor/internal/middleware"
+	"github.com/wutong-paas/cloud-adaptor/internal/nsqc/producer"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo/appstore"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo/dao"
+	"github.com/wutong-paas/cloud-adaptor/internal/task"
+	"github.com/wutong-paas/cloud-adaptor/internal/types"
+	"github.com/wutong-paas/cloud-adaptor/internal/usecase"
 	"gorm.io/gorm"
 )
 
 import (
 	_ "github.com/helm/helm/pkg/repo"
 	_ "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
-	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	_ "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
 	_ "k8s.io/api/core/v1"
 	_ "k8s.io/apimachinery/pkg/api/resource"
 	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -36,7 +36,7 @@ import (
 // Injectors from wire.go:
 
 // initApp init the application.
-func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.Config, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
+func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.Config, arg chan types.KubernetesConfigMessage, arg2 chan types.InitWutongConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
 	appStoreDao := dao.NewAppStoreDao(db)
 	appTemplater := appstore.NewAppTemplater()
 	storer := appstore.NewStorer(appTemplater)
@@ -47,11 +47,11 @@ func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.C
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)
 	createKubernetesTaskRepository := repo.NewCreateKubernetesTaskRepo(db)
-	initRainbondTaskRepository := repo.NewInitRainbondRegionTaskRepo(db)
+	initWutongTaskRepository := repo.NewInitWutongRegionTaskRepo(db)
 	updateKubernetesTaskRepository := repo.NewUpdateKubernetesTaskRepo(db)
 	taskEventRepository := repo.NewTaskEventRepo(db)
-	rainbondClusterConfigRepository := repo.NewRainbondClusterConfigRepo(db)
-	clusterUsecase := usecase.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository, rkeClusterRepository, customClusterRepository)
+	wutongClusterConfigRepository := repo.NewWutongClusterConfigRepo(db)
+	clusterUsecase := usecase.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initWutongTaskRepository, updateKubernetesTaskRepository, taskEventRepository, wutongClusterConfigRepository, rkeClusterRepository, customClusterRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
 	appStoreUsecase := usecase.NewAppStoreUsecase(appStoreRepo)
 	templateVersioner := appstore.NewTemplateVersioner(configConfig)

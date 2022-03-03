@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -23,21 +23,21 @@ import (
 	"strings"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.5.0-release"
+//WutongRegionVersion wutong region install version
+var WutongRegionVersion = "v1.0.0-stable"
 
 //OperatorVersion operator image tag
-var OperatorVersion = "v2.2.0"
+var OperatorVersion = "v1.0.0-stable"
 
 //InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
+var InstallImageRepo = "swr.cn-southwest-2.myhuaweicloud.com/wutong"
 
 func init() {
 	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
 		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
+	if os.Getenv("WUTONG_VERSION") != "" {
+		WutongRegionVersion = os.Getenv("WUTONG_VERSION")
 	}
 	if os.Getenv("OPERATOR_VERSION") != "" {
 		OperatorVersion = os.Getenv("OPERATOR_VERSION")

@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -22,30 +22,30 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
 
-// InitRainbondRegionTaskRepo enterprise create kubernetes task
-type InitRainbondRegionTaskRepo struct {
+// InitWutongRegionTaskRepo enterprise create kubernetes task
+type InitWutongRegionTaskRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewInitRainbondRegionTaskRepo new Enterprise repoo
-func NewInitRainbondRegionTaskRepo(db *gorm.DB) InitRainbondTaskRepository {
-	return &InitRainbondRegionTaskRepo{DB: db}
+// NewInitWutongRegionTaskRepo new Enterprise repoo
+func NewInitWutongRegionTaskRepo(db *gorm.DB) InitWutongTaskRepository {
+	return &InitWutongRegionTaskRepo{DB: db}
 }
 
 // Transaction -
-func (c *InitRainbondRegionTaskRepo) Transaction(tx *gorm.DB) InitRainbondTaskRepository {
-	return &InitRainbondRegionTaskRepo{DB: tx}
+func (c *InitWutongRegionTaskRepo) Transaction(tx *gorm.DB) InitWutongTaskRepository {
+	return &InitWutongRegionTaskRepo{DB: tx}
 }
 
 //Create create a task
-func (c *InitRainbondRegionTaskRepo) Create(ck *model.InitRainbondTask) error {
-	var old model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) Create(ck *model.InitWutongTask) error {
+	var old model.InitWutongTask
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
@@ -63,20 +63,20 @@ func (c *InitRainbondRegionTaskRepo) Create(ck *model.InitRainbondTask) error {
 }
 
 //GetTaskByClusterID get cluster task
-func (c *InitRainbondRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitRainbondTask, error) {
-	var old model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitWutongTask, error) {
+	var old model.InitWutongTask
 	if err := c.DB.Where("eid=? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return nil, errors.Wrap(bcode.ErrInitRainbondTaskNotFound, "get init rainbond task")
+			return nil, errors.Wrap(bcode.ErrInitWutongTaskNotFound, "get init wutong task")
 		}
-		return nil, errors.Wrap(err, "get init rainbond task")
+		return nil, errors.Wrap(err, "get init wutong task")
 	}
 	return &old, nil
 }
 
 //UpdateStatus update status
-func (c *InitRainbondRegionTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
-	var old model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
+	var old model.InitWutongTask
 	if err := c.DB.Model(&old).Where("eid = ? and task_id=?", eid, taskID).Update("status", status).Error; err != nil {
 		return err
 	}
@@ -84,8 +84,8 @@ func (c *InitRainbondRegionTaskRepo) UpdateStatus(eid string, taskID string, sta
 }
 
 //GetTask get task
-func (c *InitRainbondRegionTaskRepo) GetTask(eid string, taskID string) (*model.InitRainbondTask, error) {
-	var old model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) GetTask(eid string, taskID string) (*model.InitWutongTask, error) {
+	var old model.InitWutongTask
 	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&old).Error; err != nil {
 		return nil, err
 	}
@@ -93,8 +93,8 @@ func (c *InitRainbondRegionTaskRepo) GetTask(eid string, taskID string) (*model.
 }
 
 //GetTaskRunningLists get not complete tasks
-func (c *InitRainbondRegionTaskRepo) GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error) {
-	var list []*model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error) {
+	var list []*model.InitWutongTask
 	if err := c.DB.Where("eid = ? and status != ?", eid, "complete").Find(&list).Error; err != nil {
 		return nil, err
 	}
@@ -102,8 +102,8 @@ func (c *InitRainbondRegionTaskRepo) GetTaskRunningLists(eid string) ([]*model.I
 }
 
 //DeleteTask -
-func (c *InitRainbondRegionTaskRepo) DeleteTask(eid string, providerName, clusterID string) error {
-	var old model.InitRainbondTask
+func (c *InitWutongRegionTaskRepo) DeleteTask(eid string, providerName, clusterID string) error {
+	var old model.InitWutongTask
 	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Delete(&old).Error; err != nil {
 		return err
 	}
