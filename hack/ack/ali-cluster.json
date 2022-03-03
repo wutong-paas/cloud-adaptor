@@ -1,5 +1,5 @@
 {
-    "name": "rainbond-cluster",
+    "name": "wutong-cluster",
     "cluster_type": "ManagedKubernetes",
     "disable_rollback": true,
     "timeout_mins": 60,

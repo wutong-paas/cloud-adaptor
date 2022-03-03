@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -28,7 +28,7 @@ import (
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/requests"
 	"github.com/aliyun/alibaba-cloud-sdk-go/services/rds"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
 )
 
 func (a *ackAdaptor) SupportDB() bool {
@@ -46,7 +46,7 @@ func (a *ackAdaptor) DescribeDBInstance(clusterID, regionID, ZoneID string) (*rd
 	if res != nil && len(res.Items.DBInstance) > 0 {
 		for _, instance := range res.Items.DBInstance {
 			logrus.Infof("db instance %s", instance.DBInstanceDescription)
-			if instance.DBInstanceDescription == "rainbond-region-db_"+clusterID {
+			if instance.DBInstanceDescription == "wutong-region-db_"+clusterID {
 				return &instance, nil
 			}
 		}
@@ -91,7 +91,7 @@ func (a *ackAdaptor) CreateDBInstance(clusterID, regionID, ZoneID, VPCId, VSwitc
 	request.SecurityIPList = strings.Join(securitys, ",")
 	logrus.Infof("Security ip list: %s", request.SecurityIPList)
 	request.PayType = "Postpaid" //后付费
-	request.DBInstanceDescription = "rainbond-region-db_" + clusterID
+	request.DBInstanceDescription = "wutong-region-db_" + clusterID
 	res, err := ecsclient.CreateDBInstance(request)
 	if err != nil {
 		return nil, err
@@ -156,7 +156,7 @@ func (a *ackAdaptor) createDBAcount(regionID, instanceID, name, password string)
 	acount.DBInstanceId = instanceID
 	acount.AccountName = name
 	acount.AccountPassword = password
-	acount.AccountDescription = "create by rainbond cloud"
+	acount.AccountDescription = "create by wutong cloud"
 	response, err := ecsclient.CreateAccount(acount)
 	if err != nil {
 		return fmt.Errorf("create rds(mysql) user from alibaba api failure:%s", response.String())
@@ -214,7 +214,7 @@ func (a *ackAdaptor) createDatabase(regionID, instanceID, dbName string) error {
 	database.DBInstanceId = instanceID
 	database.DBName = dbName
 	database.CharacterSetName = "utf8"
-	database.DBDescription = "create by rainbond cloud"
+	database.DBDescription = "create by wutong cloud"
 	res, err := ecsclient.CreateDatabase(database)
 	if err != nil {
 		return fmt.Errorf("create rds(mysql) database from alibaba api failure:%s", res.String())

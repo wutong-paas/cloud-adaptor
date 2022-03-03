@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2014-2017 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2014-2017 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -21,10 +21,10 @@ package factory
 import (
 	"fmt"
 
-	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/ack"
-	"goodrain.com/cloud-adaptor/internal/adaptor/custom"
-	"goodrain.com/cloud-adaptor/internal/adaptor/rke"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/ack"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/custom"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/rke"
 )
 
 //ErrorNotSupport not support adaptor
@@ -34,7 +34,7 @@ var defaultCloudFactory = &cloudFactory{}
 //CloudFactory cloud adaptor factory
 type CloudFactory interface {
 	GetAdaptor(adaptor, accessKeyID, accessKeySecret string) (adaptor.CloudAdaptor, error)
-	GetRainbondClusterAdaptor(adaptor, accessKeyID, accessKeySecret string) (adaptor.RainbondClusterAdaptor, error)
+	GetWutongClusterAdaptor(adaptor, accessKeyID, accessKeySecret string) (adaptor.WutongClusterAdaptor, error)
 }
 
 //cloudFactory -
@@ -55,7 +55,7 @@ func (f *cloudFactory) GetAdaptor(adaptorType, accessKeyID, accessKeySecret stri
 	}
 }
 
-func (f *cloudFactory) GetRainbondClusterAdaptor(adaptorType, accessKeyID, accessKeySecret string) (adaptor.RainbondClusterAdaptor, error) {
+func (f *cloudFactory) GetWutongClusterAdaptor(adaptorType, accessKeyID, accessKeySecret string) (adaptor.WutongClusterAdaptor, error) {
 	switch adaptorType {
 	case "ack":
 		return ack.Create(accessKeyID, accessKeySecret)

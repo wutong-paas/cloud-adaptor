@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: rainbondpackages.rainbond.io
+  name: wutongpackages.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
-    kind: RainbondPackage
-    listKind: RainbondPackageList
-    plural: rainbondpackages
-    singular: rainbondpackage
+    kind: WutongPackage
+    listKind: WutongPackageList
+    plural: wutongpackages
+    singular: wutongpackage
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RainbondPackage is the Schema for the rainbondpackages API
+        description: WutongPackage is the Schema for the wutongpackages API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: RainbondPackageSpec defines the desired state of RainbondPackage
+            description: WutongPackageSpec defines the desired state of WutongPackage
             properties:
               imageHubPass:
                 description: install source image hub password
@@ -43,7 +43,7 @@ spec:
                 description: install source image hub user
                 type: string
               pkgPath:
-                description: 'Deprecated: The path where the rainbond package is located.'
+                description: 'Deprecated: The path where the wutong package is located.'
                 type: string
             required:
             - imageHubPass
@@ -51,7 +51,7 @@ spec:
             - pkgPath
             type: object
           status:
-            description: RainbondPackageStatus defines the observed state of RainbondPackage
+            description: WutongPackageStatus defines the observed state of WutongPackage
             properties:
               conditions:
                 description: worker and master maintenance
@@ -92,7 +92,7 @@ spec:
               images:
                 description: ImagesPushed contains the images have been pushed.
                 items:
-                  description: RainbondPackageImage image
+                  description: WutongPackageImage image
                   properties:
                     name:
                       description: Name image name

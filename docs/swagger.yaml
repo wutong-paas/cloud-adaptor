@@ -3343,7 +3343,7 @@ definitions:
           +optional
         type: string
     type: object
-  v1.RainbondComponent:
+  v1.WutongComponent:
     properties:
       app:
         type: string
@@ -3352,7 +3352,7 @@ definitions:
           $ref: '#/definitions/v1.Pod'
         type: array
     type: object
-  v1.RainbondComponentEvent:
+  v1.WutongComponentEvent:
     properties:
       action:
         description: |-
@@ -4736,8 +4736,8 @@ definitions:
     type: object
 info:
   contact:
-    name: Rainbond
-    url: https://rainbond.com
+    name: Wutong
+    url: https://wutong.com
   description: Cloud Adaptor
   title: Cloud Adaptor API
   version: "1.0"
@@ -5150,11 +5150,11 @@ paths:
       summary: returns the information of the cluster.
       tags:
       - cluster
-  /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components:
+  /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components:
     get:
       consumes:
       - application/json
-      operationId: listRainbondComponents
+      operationId: listWutongComponents
       parameters:
       - description: the enterprise id
         in: path
@@ -5173,12 +5173,12 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/v1.RainbondComponent'
+              $ref: '#/definitions/v1.WutongComponent'
             type: array
-      summary: returns a list of rainbond components.
+      summary: returns a list of wutong components.
       tags:
       - cluster
-  /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events:
+  /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components/{podName}/events:
     get:
       consumes:
       - application/json
@@ -5206,9 +5206,9 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/v1.RainbondComponentEvent'
+              $ref: '#/definitions/v1.WutongComponentEvent'
             type: array
-      summary: returns a list of rainbond component pod events.
+      summary: returns a list of wutong component pod events.
       tags:
       - cluster
 schemes:

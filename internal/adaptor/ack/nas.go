@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -27,7 +27,7 @@ import (
 
 	"github.com/aliyun/alibaba-cloud-sdk-go/sdk/errors"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
 )
 
 func (a *ackAdaptor) GetNasZone(regionID string) (string, error) {
@@ -67,7 +67,7 @@ func (a *ackAdaptor) CreateNAS(clusterID, regionID, zoneID string) (string, erro
 		return "", err
 	}
 	for _, system := range dresponse.FileSystems.FileSystem {
-		if system.Description == "rainbond-region-nas_"+clusterID {
+		if system.Description == "wutong-region-nas_"+clusterID {
 			logrus.Infof("nas filesystem for cluster %s is exist", clusterID)
 			return system.FileSystemId, nil
 		}
@@ -76,7 +76,7 @@ func (a *ackAdaptor) CreateNAS(clusterID, regionID, zoneID string) (string, erro
 	request.ProtocolType = "NFS"
 	request.ZoneId = zoneID
 	request.RegionId = regionID
-	request.Description = "rainbond-region-nas_" + clusterID
+	request.Description = "wutong-region-nas_" + clusterID
 	request.StorageType = "Capacity" //默认容量型，支持的region更多，性能型（Performance）支持的region有限
 	request.Scheme = "https"
 	response, createErr := client.CreateFileSystem(request)

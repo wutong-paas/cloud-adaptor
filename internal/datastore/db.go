@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -27,8 +27,8 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
-	"goodrain.com/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
 	gmysql "gorm.io/driver/mysql"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -108,15 +108,15 @@ func GetGDB() *gorm.DB {
 // AutoMigrate run auto migration for given models
 func AutoMigrate(db *gorm.DB) error {
 	models := map[string]interface{}{
-		"CloudAccessKey": model.CloudAccessKey{},
+		"CloudAccessKey":       model.CloudAccessKey{},
 		"CreateKubernetesTask": model.CreateKubernetesTask{},
-		"InitRainbondTask": model.InitRainbondTask{},
-		"RKECluster": model.RKECluster{},
-		"CustomCluster": model.CustomCluster{},
+		"InitWutongTask":       model.InitWutongTask{},
+		"RKECluster":           model.RKECluster{},
+		"CustomCluster":        model.CustomCluster{},
 		"UpdateKubernetesTask": model.UpdateKubernetesTask{},
-		"RainbondClusterConfig": model.RainbondClusterConfig{},
-		"AppStore": model.AppStore{},
-		"TaskEvent": model.TaskEvent{},
+		"WutongClusterConfig":  model.WutongClusterConfig{},
+		"AppStore":             model.AppStore{},
+		"TaskEvent":            model.TaskEvent{},
 	}
 
 	for name, mod := range models {

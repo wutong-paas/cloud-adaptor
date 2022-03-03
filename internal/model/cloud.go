@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -41,8 +41,8 @@ type CreateKubernetesTask struct {
 	ClusterID          string `gorm:"column:cluster_id" json:"clusterID"`
 }
 
-//InitRainbondTask init rainbond task
-type InitRainbondTask struct {
+//InitWutongTask init wutong task
+type InitWutongTask struct {
 	Model
 	TaskID       string `gorm:"column:task_id" json:"taskID"`
 	ClusterID    string `gorm:"column:cluster_id" json:"clusterID"`
@@ -78,13 +78,13 @@ type TaskEvent struct {
 
 // BackupListModelData list all model data
 type BackupListModelData struct {
-	CloudAccessKeys        []CloudAccessKey        `json:"cloud_access_keys"`
-	CreateKubernetesTasks  []CreateKubernetesTask  `json:"create_kubernetes_tasks"`
-	InitRainbondTasks      []InitRainbondTask      `json:"init_rainbond_tasks"`
-	TaskEvents             []TaskEvent             `json:"task_events"`
-	UpdateKubernetesTasks  []UpdateKubernetesTask  `json:"update_kubernetes_tasks"`
-	CustomClusters         []CustomCluster         `json:"custom_clusters"`
-	RKEClusters            []RKECluster            `json:"rke_clusters"`
-	RainbondClusterConfigs []RainbondClusterConfig `json:"rainbond_cluster_configs"`
-	AppStores              []AppStore              `json:"app_stores"`
+	CloudAccessKeys       []CloudAccessKey       `json:"cloud_access_keys"`
+	CreateKubernetesTasks []CreateKubernetesTask `json:"create_kubernetes_tasks"`
+	InitWutongTasks       []InitWutongTask       `json:"init_wutong_tasks"`
+	TaskEvents            []TaskEvent            `json:"task_events"`
+	UpdateKubernetesTasks []UpdateKubernetesTask `json:"update_kubernetes_tasks"`
+	CustomClusters        []CustomCluster        `json:"custom_clusters"`
+	RKEClusters           []RKECluster           `json:"rke_clusters"`
+	WutongClusterConfigs  []WutongClusterConfig  `json:"wutong_cluster_configs"`
+	AppStores             []AppStore             `json:"app_stores"`
 }

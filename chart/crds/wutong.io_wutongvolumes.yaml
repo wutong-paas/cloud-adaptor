@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: rainbondvolumes.rainbond.io
+  name: wutongvolumes.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
-    kind: RainbondVolume
-    listKind: RainbondVolumeList
-    plural: rainbondvolumes
-    singular: rainbondvolume
+    kind: WutongVolume
+    listKind: WutongVolumeList
+    plural: wutongvolumes
+    singular: wutongvolume
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RainbondVolume is the Schema for the rainbondvolumes API
+        description: WutongVolume is the Schema for the wutongvolumes API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: RainbondVolumeSpec defines the desired state of RainbondVolume
+            description: WutongVolumeSpec defines the desired state of WutongVolume
             properties:
               csiPlugin:
                 description: CSIPlugin holds the image
@@ -84,7 +84,7 @@ spec:
                 type: string
               storageClassName:
                 description: 'The name of StorageClass, which is a kind of kubernetes
-                  resource. It will used to create pvc for rainbond components. More
+                  resource. It will used to create pvc for wutong components. More
                   info: https://kubernetes.io/docs/concepts/storage/storage-classes/'
                 type: string
               storageClassParameters:
@@ -117,14 +117,14 @@ spec:
             - imageRepository
             type: object
           status:
-            description: RainbondVolumeStatus defines the observed state of RainbondVolume
+            description: WutongVolumeStatus defines the observed state of WutongVolume
             properties:
               conditions:
-                description: Condition keeps track of all rainbondvolume conditions,
+                description: Condition keeps track of all wutongvolume conditions,
                   if they exist.
                 items:
-                  description: RainbondVolumeCondition represents one current condition
-                    of an rainbondvolume.
+                  description: WutongVolumeCondition represents one current condition
+                    of an wutongvolume.
                   properties:
                     lastTransitionTime:
                       description: Last time the condition transitioned from one status
@@ -142,7 +142,7 @@ spec:
                       description: Status of the condition, one of True, False, Unknown.
                       type: string
                     type:
-                      description: Type of rainbondvolume condition.
+                      description: Type of wutongvolume condition.
                       type: string
                   required:
                   - status

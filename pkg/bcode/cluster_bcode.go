@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -58,19 +58,19 @@ var (
 	ErrNotSupportUpdateKubernetes = newByMessage(400, 7017, "cluster can not support update kubernetes")
 
 	//ErrConfigInvalid -
-	ErrConfigInvalid = newByMessage(400, 7018, "rainbond cluster config is invalid")
+	ErrConfigInvalid = newByMessage(400, 7018, "wutong cluster config is invalid")
 
 	//ErrorGetRegionStatus -
 	ErrorGetRegionStatus             = newByMessage(400, 7019, "can not get region status")
 	ErrIncorrectRKEConfig            = newByMessage(400, 7020, "the rke configuration format is incorrect")
 	ErrRKEConfigLost                 = newByMessage(404, 7021, "rancher kubernetes engine configuration lost")
-	ErrInitRainbondTaskNotFound      = newByMessage(404, 7022, "init rainbond task not found")
+	ErrInitWutongTaskNotFound        = newByMessage(404, 7022, "init wutong task not found")
 	ErrRKEClusterExists              = newByMessage(409, 7023, "rke cluster already exists")
 	ErrLastKubernetesTaskNotComplete = newByMessage(409, 7024, "the last kubernetes task not complete")
 	ErrDuplicateKubernetesUpdateTask = newByMessage(409, 7025, "kubernetes update task conflict")
 	ErrLastTaskNotFound              = newByMessage(404, 7026, "update kubernetes task not found")
 	ErrClusterNotFound               = newByMessage(404, 7027, "cluster not found")
 
-	ErrRainbondClusterInstalled = newByMessage(409, 7028, "rainbond cluster is already installed")
-	ErrClusterTaskNotFound      = newByMessage(404, 7029, "cluster task not found")
+	ErrWutongClusterInstalled = newByMessage(409, 7028, "wutong cluster is already installed")
+	ErrClusterTaskNotFound    = newByMessage(404, 7029, "cluster task not found")
 )

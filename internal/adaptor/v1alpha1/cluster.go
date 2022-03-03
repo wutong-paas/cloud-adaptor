@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2014-2017 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2014-2017 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -28,9 +28,9 @@ import (
 	"strings"
 	"time"
 
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	v3 "github.com/rancher/rke/types"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -49,7 +49,7 @@ var (
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(rainbondv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(wutongv1alpha1.AddToScheme(scheme))
 }
 
 //Cluster cluster
@@ -73,7 +73,7 @@ type Cluster struct {
 	KubernetesVersion string                 `json:"kubernetes_version,omitempty"`
 	Size              int                    `json:"size,omitempty"`
 	Parameters        map[string]interface{} `json:"parameters,omitempty"`
-	RainbondInit      bool                   `json:"rainbond_init,omitempty"`
+	WutongInit        bool                   `json:"wutong_init,omitempty"`
 	CreateLogPath     string                 `json:"create_log_path,omitempty"`
 	EIP               []string               `json:"eip,omitempty"`
 }
@@ -459,19 +459,19 @@ type Database struct {
 	ClusterID  string `json:"clusterID"`
 }
 
-//RainbondInitConfig rainbond init config
-type RainbondInitConfig struct {
-	EnableHA          bool
-	RainbondVersion   string
-	RainbondCIVersion string
-	ClusterID         string
-	RegionDatabase    *Database
-	ETCDConfig        *rainbondv1alpha1.EtcdConfig
-	NasServer         string
-	SuffixHTTPHost    string
-	GatewayNodes      []*rainbondv1alpha1.K8sNode
-	ChaosNodes        []*rainbondv1alpha1.K8sNode
-	EIPs              []string
+//WutongInitConfig wutong init config
+type WutongInitConfig struct {
+	EnableHA        bool
+	WutongVersion   string
+	WutongCIVersion string
+	ClusterID       string
+	RegionDatabase  *Database
+	ETCDConfig      *wutongv1alpha1.EtcdConfig
+	NasServer       string
+	SuffixHTTPHost  string
+	GatewayNodes    []*wutongv1alpha1.K8sNode
+	ChaosNodes      []*wutongv1alpha1.K8sNode
+	EIPs            []string
 }
 
 //NasStorageInfo nas storage info
@@ -511,13 +511,13 @@ type LoadBalancer struct {
 	AddressIPVersion   string `json:"AddressIPVersion" xml:"AddressIPVersion"`
 }
 
-//RainbondRegionStatus rainbond region status
-type RainbondRegionStatus struct {
+//WutongRegionStatus wutong region status
+type WutongRegionStatus struct {
 	OperatorReady     bool
 	OperatorInstalled bool
-	RainbondCluster   *rainbondv1alpha1.RainbondCluster
-	RainbondPackage   *rainbondv1alpha1.RainbondPackage
-	RainbondVolume    *rainbondv1alpha1.RainbondVolume
+	WutongCluster     *wutongv1alpha1.WutongCluster
+	WutongPackage     *wutongv1alpha1.WutongPackage
+	WutongVolume      *wutongv1alpha1.WutongVolume
 	RegionConfig      *v1.ConfigMap
 }
 

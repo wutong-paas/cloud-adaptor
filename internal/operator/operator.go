@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -24,12 +24,12 @@ import (
 	"path"
 	"time"
 
-	"github.com/goodrain/rainbond-operator/api/v1alpha1"
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"github.com/goodrain/rainbond-operator/util/commonutil"
-	"github.com/goodrain/rainbond-operator/util/constants"
-	"github.com/goodrain/rainbond-operator/util/rbdutil"
-	"github.com/goodrain/rainbond-operator/util/retryutil"
+	"github.com/wutong-paas/wutong-operator/api/v1alpha1"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
+	"github.com/wutong-paas/wutong-operator/util/commonutil"
+	"github.com/wutong-paas/wutong-operator/util/constants"
+	"github.com/wutong-paas/wutong-operator/util/retryutil"
+	"github.com/wutong-paas/wutong-operator/util/wtutil"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -44,15 +44,15 @@ type Operator struct {
 
 //Config operator config
 type Config struct {
-	RainbondVersion         string
-	Namespace               string
-	ArchiveFilePath         string
-	RuntimeClient           client.Client
-	Rainbondpackage         string
-	RainbondImageRepository string
-	ImageHubUser            string
-	ImageHubPass            string
-	OnlyInstallRegion       bool
+	WutongVersion         string
+	Namespace             string
+	ArchiveFilePath       string
+	RuntimeClient         client.Client
+	Wutongpackage         string
+	WutongImageRepository string
+	ImageHubUser          string
+	ImageHubPass          string
+	OnlyInstallRegion     bool
 }
 
 //NewOperator new operator
@@ -80,14 +80,14 @@ func (c *componentClaim) image() string {
 	return path.Join(c.imageRepository, c.imageName) + ":" + c.version
 }
 
-func parseComponentClaim(claim *componentClaim) *v1alpha1.RbdComponent {
-	component := &v1alpha1.RbdComponent{}
+func parseComponentClaim(claim *componentClaim) *v1alpha1.WutongComponent {
+	component := &v1alpha1.WutongComponent{}
 	component.Namespace = claim.namespace
 	component.Name = claim.name
 	component.Spec.Image = claim.image()
 	component.Spec.ImagePullPolicy = corev1.PullIfNotPresent
 	component.Spec.Replicas = claim.replicas
-	labels := rbdutil.LabelsForRainbond(map[string]string{"name": claim.name})
+	labels := wtutil.LabelsForWutong(map[string]string{"name": claim.name})
 	if claim.isInit {
 		component.Spec.PriorityComponent = true
 		labels["priorityComponent"] = "true"
@@ -97,16 +97,16 @@ func parseComponentClaim(claim *componentClaim) *v1alpha1.RbdComponent {
 }
 
 //Install install
-func (o *Operator) Install(cluster *rainbondv1alpha1.RainbondCluster) error {
+func (o *Operator) Install(cluster *wutongv1alpha1.WutongCluster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
 	if err := o.RuntimeClient.Create(ctx, cluster); err != nil {
 		if !errors.IsAlreadyExists(err) {
-			return fmt.Errorf("create rainbond cluster failure %s", err.Error())
+			return fmt.Errorf("create wutong cluster failure %s", err.Error())
 		}
-		var old rainbondv1alpha1.RainbondCluster
+		var old wutongv1alpha1.WutongCluster
 		if err := o.RuntimeClient.Get(ctx, types.NamespacedName{Name: cluster.Name, Namespace: cluster.Namespace}, &old); err != nil {
-			return fmt.Errorf("get rainbond cluster failure %s", err.Error())
+			return fmt.Errorf("get wutong cluster failure %s", err.Error())
 		}
 
 		// Keep the image configuration
@@ -123,15 +123,15 @@ func (o *Operator) Install(cluster *rainbondv1alpha1.RainbondCluster) error {
 		}
 		old.Spec = cluster.Spec
 		if err := o.RuntimeClient.Update(ctx, &old); err != nil {
-			return fmt.Errorf("update rainbond cluster failure %s", err.Error())
+			return fmt.Errorf("update wutong cluster failure %s", err.Error())
 		}
 		*cluster = old
 	}
-	if err := o.createRainbondVolumes(cluster); err != nil {
-		return fmt.Errorf("create rainbond volume failure %s", err.Error())
+	if err := o.createWutongVolumes(cluster); err != nil {
+		return fmt.Errorf("create wutong volume failure %s", err.Error())
 	}
-	if err := o.createRainbondPackage(); err != nil {
-		return fmt.Errorf("create rainbond volume failure %s", err.Error())
+	if err := o.createWutongPackage(); err != nil {
+		return fmt.Errorf("create wutong volume failure %s", err.Error())
 	}
 	if err := o.createComponents(cluster); err != nil {
 		return err
@@ -139,11 +139,11 @@ func (o *Operator) Install(cluster *rainbondv1alpha1.RainbondCluster) error {
 	return nil
 }
 
-func (o *Operator) createComponents(cluster *v1alpha1.RainbondCluster) error {
+func (o *Operator) createComponents(cluster *v1alpha1.WutongCluster) error {
 	claims := o.genComponentClaims(cluster)
 	for _, claim := range claims {
 		// update image repository for priority components
-		claim.imageRepository = cluster.Spec.RainbondImageRepository
+		claim.imageRepository = cluster.Spec.WutongImageRepository
 		data := parseComponentClaim(claim)
 		// init component
 		data.Namespace = o.Namespace
@@ -155,13 +155,13 @@ func (o *Operator) createComponents(cluster *v1alpha1.RainbondCluster) error {
 			return true, nil
 		})
 		if err != nil {
-			return fmt.Errorf("create rainbond component %s failure %s", data.GetName(), err.Error())
+			return fmt.Errorf("create wutong component %s failure %s", data.GetName(), err.Error())
 		}
 	}
 	return nil
 }
 
-func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[string]*componentClaim {
+func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[string]*componentClaim {
 	var defReplicas = commonutil.Int32(1)
 	if cluster.Spec.EnableHA {
 		defReplicas = commonutil.Int32(2)
@@ -176,55 +176,55 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 	}
 
 	newClaim := func(name string) *componentClaim {
-		defClaim := componentClaim{name: name, imageRepository: imageRepository, version: o.RainbondVersion, replicas: defReplicas}
+		defClaim := componentClaim{name: name, imageRepository: imageRepository, version: o.WutongVersion, replicas: defReplicas}
 		defClaim.imageName = name
 		return &defClaim
 	}
 	name2Claim := map[string]*componentClaim{
-		"rbd-api":            newClaim("rbd-api"),
-		"rbd-chaos":          newClaim("rbd-chaos"),
-		"rbd-eventlog":       newClaim("rbd-eventlog"),
-		"rbd-monitor":        newClaim("rbd-monitor"),
-		"rbd-mq":             newClaim("rbd-mq"),
-		"rbd-worker":         newClaim("rbd-worker"),
-		"rbd-webcli":         newClaim("rbd-webcli"),
-		"rbd-resource-proxy": newClaim("rbd-resource-proxy"),
+		"wt-api":            newClaim("wt-api"),
+		"wt-chaos":          newClaim("wt-chaos"),
+		"wt-eventlog":       newClaim("wt-eventlog"),
+		"wt-monitor":        newClaim("wt-monitor"),
+		"wt-mq":             newClaim("wt-mq"),
+		"wt-worker":         newClaim("wt-worker"),
+		"wt-webcli":         newClaim("wt-webcli"),
+		"wt-resource-proxy": newClaim("wt-resource-proxy"),
 	}
 	if !o.OnlyInstallRegion {
-		name2Claim["rbd-app-ui"] = newClaim("rbd-app-ui")
+		name2Claim["wt-app-ui"] = newClaim("wt-app-ui")
 	}
 	name2Claim["metrics-server"] = newClaim("metrics-server")
 	name2Claim["metrics-server"].version = "v0.3.6"
 
 	if cluster.Spec.RegionDatabase == nil || (cluster.Spec.UIDatabase == nil && !o.OnlyInstallRegion) {
-		claim := newClaim("rbd-db")
+		claim := newClaim("wt-db")
 		claim.version = "8.0.19"
 		claim.replicas = commonutil.Int32(1)
-		name2Claim["rbd-db"] = claim
+		name2Claim["wt-db"] = claim
 	}
 
 	if cluster.Spec.ImageHub == nil || cluster.Spec.ImageHub.Domain == constants.DefImageRepository {
-		claim := newClaim("rbd-hub")
+		claim := newClaim("wt-hub")
 		claim.imageName = "registry"
 		claim.version = "2.6.2"
 		claim.isInit = isInit
-		name2Claim["rbd-hub"] = claim
+		name2Claim["wt-hub"] = claim
 	}
 
-	name2Claim["rbd-gateway"] = newClaim("rbd-gateway")
-	name2Claim["rbd-gateway"].isInit = isInit
-	name2Claim["rbd-node"] = newClaim("rbd-node")
-	name2Claim["rbd-node"].isInit = isInit
+	name2Claim["wt-gateway"] = newClaim("wt-gateway")
+	name2Claim["wt-gateway"].isInit = isInit
+	name2Claim["wt-node"] = newClaim("wt-node")
+	name2Claim["wt-node"].isInit = isInit
 
 	if cluster.Spec.EtcdConfig == nil || len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
-		claim := newClaim("rbd-etcd")
+		claim := newClaim("wt-etcd")
 		claim.imageName = "etcd"
 		claim.version = "v3.3.18"
 		claim.isInit = isInit
 		if cluster.Spec.EnableHA {
 			claim.replicas = commonutil.Int32(3)
 		}
-		name2Claim["rbd-etcd"] = claim
+		name2Claim["wt-etcd"] = claim
 	}
 
 	// kubernetes dashboard
@@ -236,7 +236,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 	dashboardscraper.version = "v1.0.4"
 	name2Claim["dashboard-metrics-scraper"] = dashboardscraper
 
-	if rwx := cluster.Spec.RainbondVolumeSpecRWX; rwx != nil && rwx.CSIPlugin != nil {
+	if rwx := cluster.Spec.WutongVolumeSpecRWX; rwx != nil && rwx.CSIPlugin != nil {
 		if rwx.CSIPlugin.NFS != nil {
 			name2Claim["nfs-provisioner"] = newClaim("nfs-provisioner")
 			name2Claim["nfs-provisioner"].replicas = commonutil.Int32(1)
@@ -250,7 +250,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 			name2Claim[constants.AliyunCSINasProvisioner].replicas = commonutil.Int32(1)
 		}
 	}
-	if rwo := cluster.Spec.RainbondVolumeSpecRWO; rwo != nil && rwo.CSIPlugin != nil {
+	if rwo := cluster.Spec.WutongVolumeSpecRWO; rwo != nil && rwo.CSIPlugin != nil {
 		if rwo.CSIPlugin.AliyunCloudDisk != nil {
 			name2Claim[constants.AliyunCSIDiskPlugin] = newClaim(constants.AliyunCSIDiskPlugin)
 			name2Claim[constants.AliyunCSIDiskPlugin].isInit = isInit
@@ -263,13 +263,13 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 	return name2Claim
 }
 
-func (o *Operator) createRainbondPackage() error {
-	pkg := &v1alpha1.RainbondPackage{
+func (o *Operator) createWutongPackage() error {
+	pkg := &v1alpha1.WutongPackage{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      o.Rainbondpackage,
+			Name:      o.Wutongpackage,
 			Namespace: o.Namespace,
 		},
-		Spec: v1alpha1.RainbondPackageSpec{
+		Spec: v1alpha1.WutongPackageSpec{
 			PkgPath:      o.ArchiveFilePath,
 			ImageHubUser: o.ImageHubUser,
 			ImageHubPass: o.ImageHubPass,
@@ -278,17 +278,17 @@ func (o *Operator) createRainbondPackage() error {
 	return o.createResourceIfNotExists(pkg)
 }
 
-func (o *Operator) createRainbondVolumes(cluster *v1alpha1.RainbondCluster) error {
-	if cluster.Spec.RainbondVolumeSpecRWX != nil {
-		rwx := setRainbondVolume("rainbondvolumerwx", o.Namespace, rbdutil.LabelsForAccessModeRWX(), cluster.Spec.RainbondVolumeSpecRWX)
-		rwx.Spec.ImageRepository = o.RainbondImageRepository
+func (o *Operator) createWutongVolumes(cluster *v1alpha1.WutongCluster) error {
+	if cluster.Spec.WutongVolumeSpecRWX != nil {
+		rwx := setWutongVolume("wutongvolumerwx", o.Namespace, wtutil.LabelsForAccessModeRWX(), cluster.Spec.WutongVolumeSpecRWX)
+		rwx.Spec.ImageRepository = o.WutongImageRepository
 		if err := o.createResourceIfNotExists(rwx); err != nil {
 			return err
 		}
 	}
-	if cluster.Spec.RainbondVolumeSpecRWO != nil {
-		rwo := setRainbondVolume("rainbondvolumerwo", o.Namespace, rbdutil.LabelsForAccessModeRWO(), cluster.Spec.RainbondVolumeSpecRWO)
-		rwo.Spec.ImageRepository = o.RainbondImageRepository
+	if cluster.Spec.WutongVolumeSpecRWO != nil {
+		rwo := setWutongVolume("wutongvolumerwo", o.Namespace, wtutil.LabelsForAccessModeRWO(), cluster.Spec.WutongVolumeSpecRWO)
+		rwo.Spec.ImageRepository = o.WutongImageRepository
 		if err := o.createResourceIfNotExists(rwo); err != nil {
 			return err
 		}
@@ -309,12 +309,12 @@ func (o *Operator) createResourceIfNotExists(resource client.Object) error {
 	return nil
 }
 
-func setRainbondVolume(name, namespace string, labels map[string]string, spec *v1alpha1.RainbondVolumeSpec) *v1alpha1.RainbondVolume {
-	volume := &v1alpha1.RainbondVolume{
+func setWutongVolume(name, namespace string, labels map[string]string, spec *v1alpha1.WutongVolumeSpec) *v1alpha1.WutongVolume {
+	volume := &v1alpha1.WutongVolume{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
-			Labels:    rbdutil.LabelsForRainbond(labels),
+			Labels:    wtutil.LabelsForWutong(labels),
 		},
 		Spec: *spec,
 	}

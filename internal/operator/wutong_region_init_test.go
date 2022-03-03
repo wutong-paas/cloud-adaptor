@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -27,8 +27,8 @@ import (
 	"reflect"
 	"testing"
 
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	yaml "gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -44,26 +44,26 @@ func TestInstall(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rri := RainbondRegionInit{
+	rri := WutongRegionInit{
 		kubeconfig: v1alpha1.KubeConfig{Config: string(configBytes)},
 	}
-	if err := rri.InitRainbondRegion(&v1alpha1.RainbondInitConfig{
-		EnableHA:          false,
-		ClusterID:         "texxxxy",
-		RainbondVersion:   "v5.3.0-cloud",
-		RainbondCIVersion: "v5.3.0",
-		SuffixHTTPHost:    "",
-		GatewayNodes: []*rainbondv1alpha1.K8sNode{
+	if err := rri.InitWutongRegion(&v1alpha1.WutongInitConfig{
+		EnableHA:        false,
+		ClusterID:       "texxxxy",
+		WutongVersion:   "v5.3.0-cloud",
+		WutongCIVersion: "v5.3.0",
+		SuffixHTTPHost:  "",
+		GatewayNodes: []*wutongv1alpha1.K8sNode{
 			{Name: "192.168.56.104", InternalIP: "192.168.56.104"},
 		},
-		ChaosNodes: []*rainbondv1alpha1.K8sNode{
+		ChaosNodes: []*wutongv1alpha1.K8sNode{
 			{Name: "192.168.56.104", InternalIP: "192.168.56.104"},
 		},
 	}); err != nil {
 		t.Fatal(err)
 	}
 }
-func TestGetRainbondRegionStatus(t *testing.T) {
+func TestGetWutongRegionStatus(t *testing.T) {
 	u, err := user.Current()
 	if err != nil {
 		t.Fatal(err)
@@ -72,10 +72,10 @@ func TestGetRainbondRegionStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rri := RainbondRegionInit{
+	rri := WutongRegionInit{
 		kubeconfig: v1alpha1.KubeConfig{Config: string(configBytes)},
 	}
-	status, err := rri.GetRainbondRegionStatus("")
+	status, err := rri.GetWutongRegionStatus("")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -108,9 +108,9 @@ func TestUninstallRegion(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rri := RainbondRegionInit{
+	rri := WutongRegionInit{
 		kubeconfig: v1alpha1.KubeConfig{Config: string(configBytes)},
-		namespace:  "rbd-system",
+		namespace:  "wt-system",
 	}
 	err = rri.UninstallRegion("")
 	if err != nil {
@@ -131,7 +131,7 @@ func TestClient(t *testing.T) {
 	_, baseclient, _ := config.GetKubeClient()
 	var obj client.Object = &corev1.Pod{}
 	var oldOjb = reflect.New(reflect.ValueOf(obj).Elem().Type()).Interface().(client.Object)
-	if err := baseclient.Get(context.TODO(), types.NamespacedName{Name: "rainbond-operator-76b867cd66-5b7k4", Namespace: "rbd-system"}, oldOjb); err != nil {
+	if err := baseclient.Get(context.TODO(), types.NamespacedName{Name: "wutong-operator-76b867cd66-5b7k4", Namespace: "wt-system"}, oldOjb); err != nil {
 		t.Fatal(err)
 	}
 	t.Log(oldOjb.GetName())

@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rainbond-operator
-  namespace: rbd-system
+  name: wutong-operator
+  namespace: wt-system
   labels:
-    control-plane: rainbond-operator
+    control-plane: wutong-operator
 spec:
   selector:
     matchLabels:
-      control-plane: rainbond-operator
+      control-plane: wutong-operator
   replicas: 1
   template:
     metadata:
       labels:
-        control-plane: rainbond-operator
+        control-plane: wutong-operator
     spec:
-      serviceAccountName: rainbond-operator
+      serviceAccountName: wutong-operator
       volumes:
         - name: dockersock
           hostPath:
@@ -27,9 +27,9 @@ spec:
           args:
             - --leader-elect
             - --zap-log-level=4
-          image: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond-operator:v2.0.1
+          image: swr.cn-southwest-2.myhuaweicloud.com/wutong/wutong-operator:v1.0.0-stable
           imagePullPolicy: IfNotPresent
-          name: rainbond-operator
+          name: wutong-operator
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

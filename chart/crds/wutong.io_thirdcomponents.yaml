@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: thirdcomponents.rainbond.io
+  name: thirdcomponents.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
     kind: ThirdComponent
     listKind: ThirdComponentList

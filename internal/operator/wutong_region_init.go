@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -28,16 +28,16 @@ import (
 	"time"
 
 	"github.com/ghodss/yaml"
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"github.com/goodrain/rainbond-operator/util/commonutil"
-	"github.com/goodrain/rainbond-operator/util/constants"
-	"github.com/goodrain/rainbond-operator/util/rbdutil"
-	"github.com/goodrain/rainbond-operator/util/retryutil"
-	"github.com/goodrain/rainbond-operator/util/suffixdomain"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/version"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/version"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
+	"github.com/wutong-paas/wutong-operator/util/commonutil"
+	"github.com/wutong-paas/wutong-operator/util/constants"
+	"github.com/wutong-paas/wutong-operator/util/retryutil"
+	"github.com/wutong-paas/wutong-operator/util/suffixdomain"
+	"github.com/wutong-paas/wutong-operator/util/wtutil"
 	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -51,7 +51,7 @@ import (
 )
 
 var helmPath = "/Users/barnett/bin/helm"
-var chartPath = "/Users/barnett/coding/gopath/src/goodrain.com/cloud-adaptor/chart"
+var chartPath = "/Users/barnett/coding/gopath/src/github.com/wutong-paas/cloud-adaptor/chart"
 
 func init() {
 	if os.Getenv("HELM_PATH") != "" {
@@ -62,24 +62,24 @@ func init() {
 	}
 }
 
-//RainbondRegionInit rainbond region init by operator
-type RainbondRegionInit struct {
-	kubeconfig                v1alpha1.KubeConfig
-	namespace                 string
-	rainbondClusterConfigRepo repo.RainbondClusterConfigRepository
+//WutongRegionInit wutong region init by operator
+type WutongRegionInit struct {
+	kubeconfig              v1alpha1.KubeConfig
+	namespace               string
+	wutongClusterConfigRepo repo.WutongClusterConfigRepository
 }
 
-//NewRainbondRegionInit new
-func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfigRepo repo.RainbondClusterConfigRepository) *RainbondRegionInit {
-	return &RainbondRegionInit{
-		kubeconfig:                kubeconfig,
-		namespace:                 constants.Namespace,
-		rainbondClusterConfigRepo: rainbondClusterConfigRepo,
+//NewWutongRegionInit new
+func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo repo.WutongClusterConfigRepository) *WutongRegionInit {
+	return &WutongRegionInit{
+		kubeconfig:              kubeconfig,
+		namespace:               constants.Namespace,
+		wutongClusterConfigRepo: wutongClusterConfigRepo,
 	}
 }
 
-//InitRainbondRegion init rainbond region
-func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondInitConfig) error {
+//InitWutongRegion init wutong region
+func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfig) error {
 	clusterID := initConfig.ClusterID
 	kubeconfigFileName := "/tmp/" + clusterID + ".kubeconfig"
 	if err := r.kubeconfig.Save(kubeconfigFileName); err != nil {
@@ -107,11 +107,11 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		return err
 	}
 
-	// helm create rainbond operator chart
+	// helm create wutong operator chart
 	defaultArgs := []string{
-		helmPath, "install", "rainbond-operator", chartPath, "-n", r.namespace,
+		helmPath, "install", "wutong-operator", chartPath, "-n", r.namespace,
 		"--kubeconfig", kubeconfigFileName,
-		"--set", "operator.image.name=" + fmt.Sprintf("%s/rainbond-operator", version.InstallImageRepo),
+		"--set", "operator.image.name=" + fmt.Sprintf("%s/wutong-operator", version.InstallImageRepo),
 		"--set", "operator.image.tag=" + version.OperatorVersion}
 	logrus.Infof(strings.Join(defaultArgs, " "))
 	for {
@@ -126,17 +126,17 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		if err := cmd.Run(); err != nil {
 			errout := stdout.String()
 			if !strings.Contains(errout, "cannot re-use a name that is still in use") {
-				if strings.Contains(errout, `ClusterRoleBinding "rainbond-operator" in namespace`) {
+				if strings.Contains(errout, `ClusterRoleBinding "wutong-operator" in namespace`) {
 					func() {
 						ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 						defer cancel()
-						client.RbacV1().ClusterRoleBindings().Delete(ctx, "rainbond-operator", metav1.DeleteOptions{})
+						client.RbacV1().ClusterRoleBindings().Delete(ctx, "wutong-operator", metav1.DeleteOptions{})
 					}()
 					continue
 				}
 				return fmt.Errorf("install chart failure %s, %s", err.Error(), errout)
 			}
-			logrus.Warning("rainbond operator chart release is exist")
+			logrus.Warning("wutong operator chart release is exist")
 		}
 		break
 	}
@@ -149,51 +149,51 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		select {
 		case <-ticker.C:
 		case <-timer.C:
-			return fmt.Errorf("waiting rainbond operator ready timeout")
+			return fmt.Errorf("waiting wutong operator ready timeout")
 		}
 		var rb *rbacv1.ClusterRoleBinding
 		func() {
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
-			rb, err = client.RbacV1().ClusterRoleBindings().Get(ctx, "rainbond-operator", metav1.GetOptions{})
+			rb, err = client.RbacV1().ClusterRoleBindings().Get(ctx, "wutong-operator", metav1.GetOptions{})
 			if err != nil {
-				logrus.Errorf("get role binding rainbond-operator status failure %s", err.Error())
+				logrus.Errorf("get role binding wutong-operator status failure %s", err.Error())
 			}
 		}()
-		if rb != nil && rb.Name == "rainbond-operator" {
+		if rb != nil && rb.Name == "wutong-operator" {
 			break
 		}
 	}
 	// create custom resource
-	if err := r.createRainbondCR(client, runtimeClient, initConfig); err != nil {
-		return fmt.Errorf("create rainbond CR failure %s", err.Error())
+	if err := r.createWutongCR(client, runtimeClient, initConfig); err != nil {
+		return fmt.Errorf("create wutong CR failure %s", err.Error())
 	}
 	return nil
 }
 
-func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, client client.Client, initConfig *v1alpha1.RainbondInitConfig) error {
-	// create rainbond cluster resource
-	//TODO: define etcd config by RainbondInitConfig
-	rcc, err := r.rainbondClusterConfigRepo.Get(initConfig.ClusterID)
+func (r *WutongRegionInit) createWutongCR(kubeClient *kubernetes.Clientset, client client.Client, initConfig *v1alpha1.WutongInitConfig) error {
+	// create wutong cluster resource
+	//TODO: define etcd config by WutongInitConfig
+	rcc, err := r.wutongClusterConfigRepo.Get(initConfig.ClusterID)
 	if err != nil && err != gorm.ErrRecordNotFound {
-		logrus.Errorf("get rainbond cluster config failure %s", err.Error())
+		logrus.Errorf("get wutong cluster config failure %s", err.Error())
 	}
-	cluster := &rainbondv1alpha1.RainbondCluster{
-		Spec: rainbondv1alpha1.RainbondClusterSpec{
-			InstallVersion:          initConfig.RainbondVersion,
-			CIVersion:               initConfig.RainbondCIVersion,
-			EnableHA:                initConfig.EnableHA,
-			RainbondImageRepository: version.InstallImageRepo,
-			SuffixHTTPHost:          initConfig.SuffixHTTPHost,
-			NodesForChaos:           initConfig.ChaosNodes,
-			NodesForGateway:         initConfig.GatewayNodes,
-			GatewayIngressIPs:       initConfig.EIPs,
+	cluster := &wutongv1alpha1.WutongCluster{
+		Spec: wutongv1alpha1.WutongClusterSpec{
+			InstallVersion:        initConfig.WutongVersion,
+			CIVersion:             initConfig.WutongCIVersion,
+			EnableHA:              initConfig.EnableHA,
+			WutongImageRepository: version.InstallImageRepo,
+			SuffixHTTPHost:        initConfig.SuffixHTTPHost,
+			NodesForChaos:         initConfig.ChaosNodes,
+			NodesForGateway:       initConfig.GatewayNodes,
+			GatewayIngressIPs:     initConfig.EIPs,
 		},
 	}
 	if rcc != nil {
-		logrus.Info("use custom rainbondcluster config")
+		logrus.Info("use custom wutongcluster config")
 		if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
-			logrus.Errorf("Unmarshal rainbond config failure %s", err.Error())
+			logrus.Errorf("Unmarshal wutong config failure %s", err.Error())
 		}
 	}
 	if len(cluster.Spec.GatewayIngressIPs) == 0 {
@@ -214,19 +214,19 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 		cluster.Spec.ImageHub = nil
 	}
 	if cluster.Spec.InstallVersion == "" {
-		cluster.Spec.InstallVersion = initConfig.RainbondVersion
+		cluster.Spec.InstallVersion = initConfig.WutongVersion
 	}
 	if cluster.Spec.CIVersion == "" {
-		cluster.Spec.CIVersion = initConfig.RainbondCIVersion
+		cluster.Spec.CIVersion = initConfig.WutongCIVersion
 	}
-	if cluster.Spec.RainbondImageRepository == "" {
-		cluster.Spec.RainbondImageRepository = version.InstallImageRepo
+	if cluster.Spec.WutongImageRepository == "" {
+		cluster.Spec.WutongImageRepository = version.InstallImageRepo
 	}
 	if initConfig.ETCDConfig != nil && len(initConfig.ETCDConfig.Endpoints) > 0 {
 		cluster.Spec.EtcdConfig = initConfig.ETCDConfig
 	}
 	if initConfig.RegionDatabase != nil && initConfig.RegionDatabase.Host != "" {
-		cluster.Spec.RegionDatabase = &rainbondv1alpha1.Database{
+		cluster.Spec.RegionDatabase = &wutongv1alpha1.Database{
 			Host:     initConfig.RegionDatabase.Host,
 			Port:     initConfig.RegionDatabase.Port,
 			Username: initConfig.RegionDatabase.UserName,
@@ -234,14 +234,14 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 		}
 	}
 	if initConfig.NasServer != "" {
-		cluster.Spec.RainbondVolumeSpecRWX = &rainbondv1alpha1.RainbondVolumeSpec{
-			CSIPlugin: &rainbondv1alpha1.CSIPluginSource{
-				AliyunNas: &rainbondv1alpha1.AliyunNasCSIPluginSource{
+		cluster.Spec.WutongVolumeSpecRWX = &wutongv1alpha1.WutongVolumeSpec{
+			CSIPlugin: &wutongv1alpha1.CSIPluginSource{
+				AliyunNas: &wutongv1alpha1.AliyunNasCSIPluginSource{
 					AccessKeyID:     "",
 					AccessKeySecret: "",
 				},
 			},
-			StorageClassParameters: &rainbondv1alpha1.StorageClassParameters{
+			StorageClassParameters: &wutongv1alpha1.StorageClassParameters{
 				Parameters: map[string]string{
 					"volumeAs":        "subpath",
 					"server":          initConfig.NasServer,
@@ -251,33 +251,33 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 		}
 	}
 	// handle volume spec
-	if cluster.Spec.RainbondVolumeSpecRWX != nil {
-		if cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin != nil {
-			if cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.AliyunCloudDisk == nil &&
-				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.AliyunNas == nil &&
-				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.NFS == nil {
-				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin = nil
+	if cluster.Spec.WutongVolumeSpecRWX != nil {
+		if cluster.Spec.WutongVolumeSpecRWX.CSIPlugin != nil {
+			if cluster.Spec.WutongVolumeSpecRWX.CSIPlugin.AliyunCloudDisk == nil &&
+				cluster.Spec.WutongVolumeSpecRWX.CSIPlugin.AliyunNas == nil &&
+				cluster.Spec.WutongVolumeSpecRWX.CSIPlugin.NFS == nil {
+				cluster.Spec.WutongVolumeSpecRWX.CSIPlugin = nil
 			}
 		}
 	}
-	if cluster.Spec.RainbondVolumeSpecRWO != nil {
-		if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin != nil {
-			if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.AliyunCloudDisk == nil &&
-				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.AliyunNas == nil &&
-				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.NFS == nil {
-				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin = nil
+	if cluster.Spec.WutongVolumeSpecRWO != nil {
+		if cluster.Spec.WutongVolumeSpecRWO.CSIPlugin != nil {
+			if cluster.Spec.WutongVolumeSpecRWO.CSIPlugin.AliyunCloudDisk == nil &&
+				cluster.Spec.WutongVolumeSpecRWO.CSIPlugin.AliyunNas == nil &&
+				cluster.Spec.WutongVolumeSpecRWO.CSIPlugin.NFS == nil {
+				cluster.Spec.WutongVolumeSpecRWO.CSIPlugin = nil
 			}
 		}
-		if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin == nil && cluster.Spec.RainbondVolumeSpecRWO.StorageClassName == "" {
-			cluster.Spec.RainbondVolumeSpecRWO = nil
+		if cluster.Spec.WutongVolumeSpecRWO.CSIPlugin == nil && cluster.Spec.WutongVolumeSpecRWO.StorageClassName == "" {
+			cluster.Spec.WutongVolumeSpecRWO = nil
 		}
 	}
-	if cluster.Spec.RainbondVolumeSpecRWX == nil ||
-		(cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin == nil &&
-			cluster.Spec.RainbondVolumeSpecRWX.StorageClassName == "") {
-		cluster.Spec.RainbondVolumeSpecRWX = &rainbondv1alpha1.RainbondVolumeSpec{
-			CSIPlugin: &rainbondv1alpha1.CSIPluginSource{
-				NFS: &rainbondv1alpha1.NFSCSIPluginSource{},
+	if cluster.Spec.WutongVolumeSpecRWX == nil ||
+		(cluster.Spec.WutongVolumeSpecRWX.CSIPlugin == nil &&
+			cluster.Spec.WutongVolumeSpecRWX.StorageClassName == "") {
+		cluster.Spec.WutongVolumeSpecRWX = &wutongv1alpha1.WutongVolumeSpec{
+			CSIPlugin: &wutongv1alpha1.CSIPluginSource{
+				NFS: &wutongv1alpha1.NFSCSIPluginSource{},
 			},
 		}
 	}
@@ -306,16 +306,16 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			cluster.Spec.SuffixHTTPHost = constants.DefHTTPDomainSuffix
 		}
 	}
-	cluster.Name = "rainbondcluster"
+	cluster.Name = "wutongcluster"
 	cluster.Namespace = r.namespace
 	operator, err := NewOperator(Config{
-		RainbondVersion:         initConfig.RainbondVersion,
-		Namespace:               r.namespace,
-		ArchiveFilePath:         "/opt/rainbond/pkg/tgz/rainbond.tgz",
-		RuntimeClient:           client,
-		Rainbondpackage:         "rainbondpackage",
-		RainbondImageRepository: version.InstallImageRepo,
-		OnlyInstallRegion:       true,
+		WutongVersion:         initConfig.WutongVersion,
+		Namespace:             r.namespace,
+		ArchiveFilePath:       "/opt/wutong/pkg/tgz/wutong.tgz",
+		RuntimeClient:         client,
+		Wutongpackage:         "wutongpackage",
+		WutongImageRepository: version.InstallImageRepo,
+		OnlyInstallRegion:     true,
 	})
 	if err != nil {
 		return fmt.Errorf("create operator instance failure %s", err.Error())
@@ -323,7 +323,7 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 	return operator.Install(cluster)
 }
 
-func (r *RainbondRegionInit) genSuffixHTTPHost(kubeClient *kubernetes.Clientset, ip string) (domain string, err error) {
+func (r *WutongRegionInit) genSuffixHTTPHost(kubeClient *kubernetes.Clientset, ip string) (domain string, err error) {
 	id, auth, err := r.getOrCreateUUIDAndAuth(kubeClient)
 	if err != nil {
 		return "", err
@@ -335,16 +335,16 @@ func (r *RainbondRegionInit) genSuffixHTTPHost(kubeClient *kubernetes.Clientset,
 	return domain, nil
 }
 
-func (r *RainbondRegionInit) getOrCreateUUIDAndAuth(kubeClient *kubernetes.Clientset) (id, auth string, err error) {
+func (r *WutongRegionInit) getOrCreateUUIDAndAuth(kubeClient *kubernetes.Clientset) (id, auth string, err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
-	cm, err := kubeClient.CoreV1().ConfigMaps(r.namespace).Get(ctx, "rbd-suffix-host", metav1.GetOptions{})
+	cm, err := kubeClient.CoreV1().ConfigMaps(r.namespace).Get(ctx, "wt-suffix-host", metav1.GetOptions{})
 	if err != nil && !k8sErrors.IsNotFound(err) {
 		return "", "", err
 	}
 	if k8sErrors.IsNotFound(err) {
-		logrus.Info("not found configmap rbd-suffix-host, create it")
-		cm = generateSuffixConfigMap("rbd-suffix-host", r.namespace)
+		logrus.Info("not found configmap wt-suffix-host, create it")
+		cm = generateSuffixConfigMap("wt-suffix-host", r.namespace)
 		if _, err = kubeClient.CoreV1().ConfigMaps(r.namespace).Create(ctx, cm, metav1.CreateOptions{}); err != nil {
 			return "", "", err
 		}
@@ -367,16 +367,16 @@ func generateSuffixConfigMap(name, namespace string) *v1.ConfigMap {
 	return cm
 }
 
-//GetRainbondRegionStatus get rainbond region status
-func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha1.RainbondRegionStatus, error) {
-	coreClient, rainbondClient, err := r.kubeconfig.GetKubeClient()
+//GetWutongRegionStatus get wutong region status
+func (r *WutongRegionInit) GetWutongRegionStatus(clusterID string) (*v1alpha1.WutongRegionStatus, error) {
+	coreClient, wutongClient, err := r.kubeconfig.GetKubeClient()
 	if err != nil {
 		return nil, err
 	}
-	status := &v1alpha1.RainbondRegionStatus{}
+	status := &v1alpha1.WutongRegionStatus{}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
-	deployment, err := coreClient.AppsV1().Deployments("rbd-system").Get(ctx, "rainbond-operator", metav1.GetOptions{})
+	deployment, err := coreClient.AppsV1().Deployments("wt-system").Get(ctx, "wutong-operator", metav1.GetOptions{})
 	if err != nil {
 		logrus.Warningf("get operator failure %s", err.Error())
 	}
@@ -386,42 +386,42 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 	if deployment != nil {
 		status.OperatorInstalled = true
 	}
-	var cluster rainbondv1alpha1.RainbondCluster
+	var cluster wutongv1alpha1.WutongCluster
 	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel2()
-	err = rainbondClient.Get(ctx2, types.NamespacedName{Name: "rainbondcluster", Namespace: "rbd-system"}, &cluster)
+	err = wutongClient.Get(ctx2, types.NamespacedName{Name: "wutongcluster", Namespace: "wt-system"}, &cluster)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
 		}
 		logrus.Warningf("get cluster failure %s", err.Error())
 	}
-	status.RainbondCluster = &cluster
-	var pkgStatus rainbondv1alpha1.RainbondPackage
+	status.WutongCluster = &cluster
+	var pkgStatus wutongv1alpha1.WutongPackage
 	ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel3()
-	err = rainbondClient.Get(ctx3, types.NamespacedName{Name: "rainbondpackage", Namespace: "rbd-system"}, &pkgStatus)
+	err = wutongClient.Get(ctx3, types.NamespacedName{Name: "wutongpackage", Namespace: "wt-system"}, &pkgStatus)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
 		}
 		logrus.Warningf("get pkgStatus failure %s", err.Error())
 	}
-	status.RainbondPackage = &pkgStatus
-	var volume rainbondv1alpha1.RainbondVolume
+	status.WutongPackage = &pkgStatus
+	var volume wutongv1alpha1.WutongVolume
 	ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel4()
-	err = rainbondClient.Get(ctx4, types.NamespacedName{Name: "rainbondvolumerwx", Namespace: "rbd-system"}, &volume)
+	err = wutongClient.Get(ctx4, types.NamespacedName{Name: "wutongvolumerwx", Namespace: "wt-system"}, &volume)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
 		}
-		logrus.Warningf("get rainbond volume failure %s", err.Error())
+		logrus.Warningf("get wutong volume failure %s", err.Error())
 	}
-	status.RainbondVolume = &volume
+	status.WutongVolume = &volume
 	ctx5, cancel5 := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel5()
-	config, err := coreClient.CoreV1().ConfigMaps("rbd-system").Get(ctx5, "region-config", metav1.GetOptions{})
+	config, err := coreClient.CoreV1().ConfigMaps("wt-system").Get(ctx5, "region-config", metav1.GetOptions{})
 	if err != nil && !k8sErrors.IsNotFound(err) {
 		logrus.Warningf("get region config failure %s", err.Error())
 	}
@@ -430,7 +430,7 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 }
 
 //UninstallRegion uninstall
-func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
+func (r *WutongRegionInit) UninstallRegion(clusterID string) error {
 	deleteOpts := metav1.DeleteOptions{
 		GracePeriodSeconds: commonutil.Int64(0),
 	}
@@ -441,17 +441,17 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 
-	// delte rainbond components
-	if err := runtimeClient.DeleteAllOf(ctx, &rainbondv1alpha1.RbdComponent{}, client.InNamespace(r.namespace)); err != nil {
+	// delte wutong components
+	if err := runtimeClient.DeleteAllOf(ctx, &wutongv1alpha1.WutongComponent{}, client.InNamespace(r.namespace)); err != nil {
 		return fmt.Errorf("delete component failure: %v", err)
 	}
-	// delete rainbond packages
-	if err := runtimeClient.DeleteAllOf(ctx, &rainbondv1alpha1.RainbondPackage{}, client.InNamespace(r.namespace)); err != nil {
-		return fmt.Errorf("delete rainbond package failure: %v", err)
+	// delete wutong packages
+	if err := runtimeClient.DeleteAllOf(ctx, &wutongv1alpha1.WutongPackage{}, client.InNamespace(r.namespace)); err != nil {
+		return fmt.Errorf("delete wutong package failure: %v", err)
 	}
-	// delete rainbondvolume
-	if err := runtimeClient.DeleteAllOf(ctx, &rainbondv1alpha1.RainbondVolume{}, client.InNamespace(r.namespace)); err != nil {
-		return fmt.Errorf("delete rainbond volume failure: %v", err)
+	// delete wutongvolume
+	if err := runtimeClient.DeleteAllOf(ctx, &wutongv1alpha1.WutongVolume{}, client.InNamespace(r.namespace)); err != nil {
+		return fmt.Errorf("delete wutong volume failure: %v", err)
 	}
 
 	// delete pv based on pvc
@@ -477,38 +477,38 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 	}
 
 	// delete storage class and csidriver
-	rainbondLabelSelector := fields.SelectorFromSet(rbdutil.LabelsForRainbond(nil)).String()
-	if err := coreClient.StorageV1().StorageClasses().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{LabelSelector: rainbondLabelSelector}); err != nil {
+	wutongLabelSelector := fields.SelectorFromSet(wtutil.LabelsForWutong(nil)).String()
+	if err := coreClient.StorageV1().StorageClasses().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{LabelSelector: wutongLabelSelector}); err != nil {
 		return fmt.Errorf("delete storageclass: %v", err)
 	}
-	if err := coreClient.StorageV1().StorageClasses().Delete(ctx, "rainbondslsc", metav1.DeleteOptions{}); err != nil {
+	if err := coreClient.StorageV1().StorageClasses().Delete(ctx, "wutongslsc", metav1.DeleteOptions{}); err != nil {
 		if !k8sErrors.IsNotFound(err) {
-			return fmt.Errorf("delete storageclass rainbondslsc: %v", err)
+			return fmt.Errorf("delete storageclass wutongslsc: %v", err)
 		}
 	}
-	if err := coreClient.StorageV1().StorageClasses().Delete(ctx, "rainbondsssc", metav1.DeleteOptions{}); err != nil {
+	if err := coreClient.StorageV1().StorageClasses().Delete(ctx, "wutongsssc", metav1.DeleteOptions{}); err != nil {
 		if !k8sErrors.IsNotFound(err) {
-			return fmt.Errorf("delete storageclass rainbondsssc: %v", err)
+			return fmt.Errorf("delete storageclass wutongsssc: %v", err)
 		}
 	}
-	if err := coreClient.StorageV1beta1().CSIDrivers().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{LabelSelector: rainbondLabelSelector}); err != nil {
+	if err := coreClient.StorageV1beta1().CSIDrivers().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{LabelSelector: wutongLabelSelector}); err != nil {
 		if !k8sErrors.IsNotFound(err) {
 			return fmt.Errorf("delete csidriver: %v", err)
 		}
 	}
 
-	// delete rainbond-operator ClusterRoleBinding
-	if err := coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, "rainbond-operator", metav1.DeleteOptions{}); err != nil {
+	// delete wutong-operator ClusterRoleBinding
+	if err := coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, "wutong-operator", metav1.DeleteOptions{}); err != nil {
 		if !k8sErrors.IsNotFound(err) {
 			return fmt.Errorf("delete cluster role bindings: %v", err)
 		}
 	}
 
-	// delete rainbond cluster
-	var rbdcluster rainbondv1alpha1.RainbondCluster
-	if err := runtimeClient.DeleteAllOf(ctx, &rbdcluster, client.InNamespace(r.namespace)); err != nil {
+	// delete wutong cluster
+	var wtcluster wutongv1alpha1.WutongCluster
+	if err := runtimeClient.DeleteAllOf(ctx, &wtcluster, client.InNamespace(r.namespace)); err != nil {
 		if !k8sErrors.IsNotFound(err) {
-			return fmt.Errorf("delete rainbond volume failure: %v", err)
+			return fmt.Errorf("delete wutong volume failure: %v", err)
 		}
 	}
 
@@ -531,7 +531,7 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 		case <-timer.C:
 			return fmt.Errorf("waiting namespace deleted timeout")
 		case <-ticker.C:
-			logrus.Debugf("waiting namespace rbd-system deleted")
+			logrus.Debugf("waiting namespace wt-system deleted")
 		}
 	}
 }

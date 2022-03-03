@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -26,15 +26,15 @@ import (
 	"sync"
 	"time"
 
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/datastore"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/datastore"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/versionutil"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -44,7 +44,7 @@ type customAdaptor struct {
 }
 
 //Create create ack adaptor
-func Create() (adaptor.RainbondClusterAdaptor, error) {
+func Create() (adaptor.WutongClusterAdaptor, error) {
 	return &customAdaptor{
 		Repo: repo.NewCustomClusterRepo(datastore.GetGDB()),
 	}, nil
@@ -96,7 +96,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	kc := v1alpha1.KubeConfig{Config: cc.KubeConfig}
 	client, _, err := kc.GetKubeClient()
 	if err != nil {
-		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["DisableWutongInit"] = true
 		cluster.Parameters["Message"] = "无法创建集群通信客户端"
 		return cluster, fmt.Errorf("create kube client failure %s", err.Error())
 	}
@@ -104,7 +104,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	defer cancel()
 	versionByte, err := client.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 	if err != nil {
-		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["DisableWutongInit"] = true
 		cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 		return cluster, fmt.Errorf("get cluster version failure %s", err.Error())
 	}
@@ -113,8 +113,8 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
 	if !versionutil.CheckVersion(cluster.CurrentVersion) {
-		cluster.Parameters["DisableRainbondInit"] = true
-		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
+		cluster.Parameters["DisableWutongInit"] = true
+		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Wutong支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
 	}
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
 
@@ -122,15 +122,15 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	defer cancel()
 	nodes, err := client.CoreV1().Nodes().List(ctx, v1.ListOptions{})
 	if err != nil {
-		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["DisableWutongInit"] = true
 		cluster.Parameters["Message"] = "无法获取集群节点列表"
 		return cluster, fmt.Errorf("query cluster node info failure %s", err.Error())
 	}
 	cluster.State = v1alpha1.RunningState
 	cluster.Size = len(nodes.Items)
-	_, err = client.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", v1.GetOptions{})
+	_, err = client.CoreV1().ConfigMaps("wt-system").Get(ctx, "region-config", v1.GetOptions{})
 	if err == nil {
-		cluster.RainbondInit = true
+		cluster.WutongInit = true
 	}
 	return cluster, nil
 }
@@ -146,14 +146,14 @@ func (c *customAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConf
 //DeleteCluster delete cluster
 func (c *customAdaptor) DeleteCluster(eid, clusterID string) error {
 	cluster, _ := c.DescribeCluster(eid, clusterID)
-	if cluster != nil && cluster.RainbondInit {
+	if cluster != nil && cluster.WutongInit {
 		return bcode.ErrClusterNotAllowDelete
 	}
 	return c.Repo.DeleteCluster(eid, clusterID)
 }
 
-func (c *customAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
-	return &v1alpha1.RainbondInitConfig{
+func (c *customAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
+	return &v1alpha1.WutongInitConfig{
 		EnableHA: func() bool {
 			if cluster.Size > 3 {
 				return true
@@ -188,7 +188,7 @@ func (c *customAdaptor) CreateCluster(string, v1alpha1.CreateClusterConfig) (*v1
 	return nil, nil
 }
 
-func (c *customAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (c *customAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("CreateCluster", "", "success")
 	return nil
 }

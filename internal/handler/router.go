@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -22,11 +22,11 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"goodrain.com/cloud-adaptor/internal/middleware"
-	"goodrain.com/cloud-adaptor/pkg/util/constants"
+	"github.com/wutong-paas/cloud-adaptor/internal/middleware"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 
 	// go-swag
-	_ "goodrain.com/cloud-adaptor/docs"
+	_ "github.com/wutong-paas/cloud-adaptor/docs"
 )
 
 // Router -
@@ -90,15 +90,15 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.POST("/kclusters/:clusterID/reinstall", r.cluster.ReInstallKubernetesCluster)
 	entv1.GET("/kclusters/:clusterID/createlog", r.cluster.GetLogContent)
 	entv1.GET("/kclusters/:clusterID/kubeconfig", r.cluster.GetKubeConfig)
-	entv1.GET("/kclusters/:clusterID/rainbondcluster", r.cluster.GetRainbondClusterConfig)
-	entv1.PUT("/kclusters/:clusterID/rainbondcluster", r.cluster.SetRainbondClusterConfig)
+	entv1.GET("/kclusters/:clusterID/wutongcluster", r.cluster.GetWutongClusterConfig)
+	entv1.PUT("/kclusters/:clusterID/wutongcluster", r.cluster.SetWutongClusterConfig)
 	entv1.POST("/kclusters/:clusterID/uninstall", r.cluster.UninstallRegion)
 	entv1.POST("/kclusters/prune-update-rkeconfig", r.cluster.pruneUpdateRKEConfig)
 
 	clusterv1 := entv1.Group("/kclusters/:clusterID")
 	{
-		clusterv1.GET("/rainbond-components", r.cluster.listRainbondComponents)
-		clusterv1.GET("/rainbond-components/:podName/events", r.cluster.listPodEvents)
+		clusterv1.GET("/wutong-components", r.cluster.listWutongComponents)
+		clusterv1.GET("/wutong-components/:podName/events", r.cluster.listPodEvents)
 	}
 
 	entv1.POST("/accesskey", r.cluster.AddAccessKey)
@@ -106,10 +106,10 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.GET("/last-ck-task", r.cluster.GetLastAddKubernetesClusterTask)
 	entv1.GET("/ck-task/:taskID", r.cluster.GetAddKubernetesClusterTask)
 	entv1.GET("/tasks/:taskID/events", r.cluster.GetTaskEventList)
-	entv1.GET("/init-task/:clusterID", r.cluster.GetInitRainbondTask)
-	entv1.GET("/init-tasks", r.cluster.GetRunningInitRainbondTask)
-	entv1.POST("/init-cluster", r.cluster.CreateInitRainbondTask)
-	entv1.PUT("/init-tasks/:taskID/status", r.cluster.UpdateInitRainbondTaskStatus)
+	entv1.GET("/init-task/:clusterID", r.cluster.GetInitWutongTask)
+	entv1.GET("/init-tasks", r.cluster.GetRunningInitWutongTask)
+	entv1.POST("/init-cluster", r.cluster.CreateInitWutongTask)
+	entv1.PUT("/init-tasks/:taskID/status", r.cluster.UpdateInitWutongTaskStatus)
 
 	entv1.POST("/update-cluster", r.cluster.UpdateKubernetesCluster)
 	entv1.GET("/update-cluster/:clusterID", r.cluster.GetUpdateKubernetesTask)

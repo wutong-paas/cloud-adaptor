@@ -8,7 +8,7 @@ import (
 //Md5Crypt -
 func Md5Crypt(encryptStr, salt string) (CryptStr string) {
 	if salt == "" {
-		salt = "goodrain"
+		salt = "wutong"
 	}
 	str := fmt.Sprintf("%s%s", encryptStr, salt)
 	return fmt.Sprintf("%x", md5.Sum([]byte(str)))

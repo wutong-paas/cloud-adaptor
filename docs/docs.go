@@ -19,8 +19,8 @@ var doc = `{
         "description": "{{.Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "Rainbond",
-            "url": "https://rainbond.com"
+            "name": "Wutong",
+            "url": "https://wutong.com"
         },
         "version": "{{.Version}}"
     },
@@ -638,7 +638,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components": {
+        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -649,8 +649,8 @@ var doc = `{
                 "tags": [
                     "cluster"
                 ],
-                "summary": "returns a list of rainbond components.",
-                "operationId": "listRainbondComponents",
+                "summary": "returns a list of wutong components.",
+                "operationId": "listWutongComponents",
                 "parameters": [
                     {
                         "type": "string",
@@ -673,14 +673,14 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.RainbondComponent"
+                                "$ref": "#/definitions/v1.WutongComponent"
                             }
                         }
                     }
                 }
             }
         },
-        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events": {
+        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components/{podName}/events": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -691,7 +691,7 @@ var doc = `{
                 "tags": [
                     "cluster"
                 ],
-                "summary": "returns a list of rainbond component pod events.",
+                "summary": "returns a list of wutong component pod events.",
                 "operationId": "listPodEvents",
                 "parameters": [
                     {
@@ -722,7 +722,7 @@ var doc = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/v1.RainbondComponentEvent"
+                                "$ref": "#/definitions/v1.WutongComponentEvent"
                             }
                         }
                     }
@@ -3169,7 +3169,7 @@ var doc = `{
                 }
             }
         },
-        "v1.RainbondComponent": {
+        "v1.WutongComponent": {
             "type": "object",
             "properties": {
                 "app": {
@@ -3183,7 +3183,7 @@ var doc = `{
                 }
             }
         },
-        "v1.RainbondComponentEvent": {
+        "v1.WutongComponentEvent": {
             "type": "object",
             "properties": {
                 "action": {

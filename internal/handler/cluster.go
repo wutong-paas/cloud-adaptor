@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -26,12 +26,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
-	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/usecase"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
-	"goodrain.com/cloud-adaptor/pkg/util/md5util"
+	v1 "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/usecase"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/ginutil"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/md5util"
 )
 
 // ClusterHandler -
@@ -333,11 +333,11 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 	ginutil.JSON(ctx, access, nil)
 }
 
-// GetInitRainbondTask returns the information of .
+// GetInitWutongTask returns the information of .
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
 //
-// GetInitRainbondTaskReq
+// GetInitWutongTaskReq
 //
 // Produces:
 // - application/json
@@ -346,27 +346,27 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 // - application/json
 //
 // Responses:
-// 200: body:InitRainbondTaskRes
+// 200: body:InitWutongTaskRes
 // 400: body:Reponse
 // 500: body:Reponse
-func (e *ClusterHandler) GetInitRainbondTask(ctx *gin.Context) {
+func (e *ClusterHandler) GetInitWutongTask(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	var req v1.GetInitRainbondTaskReq
+	var req v1.GetInitWutongTaskReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		logrus.Errorf("bind get init rainbond task query failure %s", err.Error())
+		logrus.Errorf("bind get init wutong task query failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	task, err := e.cluster.GetInitRainbondTaskByClusterID(eid, clusterID, req.ProviderName)
+	task, err := e.cluster.GetInitWutongTaskByClusterID(eid, clusterID, req.ProviderName)
 	ginutil.JSON(ctx, task, err)
 }
 
-// CreateInitRainbondTask returns the information of .
+// CreateInitWutongTask returns the information of .
 //
 // swagger:route POST /enterprise-server/api/v1/enterprises/{eid}/init-cluster cloud init
 //
-// InitRainbondRegionReq
+// InitWutongRegionReq
 //
 // Produces:
 // - application/json
@@ -375,18 +375,18 @@ func (e *ClusterHandler) GetInitRainbondTask(ctx *gin.Context) {
 // - application/json
 //
 // Responses:
-// 200: body:InitRainbondTaskRes
+// 200: body:InitWutongTaskRes
 // 400: body:Reponse
 // 500: body:Reponse
-func (e *ClusterHandler) CreateInitRainbondTask(ctx *gin.Context) {
+func (e *ClusterHandler) CreateInitWutongTask(ctx *gin.Context) {
 	eid := ctx.Param("eid")
-	var req v1.InitRainbondRegionReq
+	var req v1.InitWutongRegionReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		logrus.Errorf("bind init rainbond body failure %s", err.Error())
+		logrus.Errorf("bind init wutong body failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	task, err := e.cluster.InitRainbondRegion(ctx.Request.Context(), eid, req)
+	task, err := e.cluster.InitWutongRegion(ctx.Request.Context(), eid, req)
 	if err != nil {
 		ginutil.JSON(ctx, task, err)
 		return
@@ -394,7 +394,7 @@ func (e *ClusterHandler) CreateInitRainbondTask(ctx *gin.Context) {
 	ginutil.JSON(ctx, task, nil)
 }
 
-// GetRunningInitRainbondTask returns the information of .
+// GetRunningInitWutongTask returns the information of .
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
 //
@@ -406,17 +406,17 @@ func (e *ClusterHandler) CreateInitRainbondTask(ctx *gin.Context) {
 // - application/json
 //
 // Responses:
-// 200: body:InitRainbondTaskListRes
+// 200: body:InitWutongTaskListRes
 // 400: body:Reponse
 // 500: body:Reponse
-func (e *ClusterHandler) GetRunningInitRainbondTask(ctx *gin.Context) {
+func (e *ClusterHandler) GetRunningInitWutongTask(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	tasks, err := e.cluster.GetTaskRunningLists(eid)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
-	ginutil.JSON(ctx, v1.InitRainbondTaskListRes{Tasks: tasks}, nil)
+	ginutil.JSON(ctx, v1.InitWutongTaskListRes{Tasks: tasks}, nil)
 }
 
 //GetRegionConfig get region config file
@@ -438,7 +438,7 @@ func (e *ClusterHandler) GetRunningInitRainbondTask(ctx *gin.Context) {
 func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 	var req v1.GetRegionConfigReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		logrus.Errorf("bind get rainbond region config failure %s", err.Error())
+		logrus.Errorf("bind get wutong region config failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
@@ -453,11 +453,11 @@ func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.GetRegionConfigRes{Configs: configs, ConfigYaml: string(out)}, nil)
 }
 
-//UpdateInitRainbondTaskStatus get region config file
+//UpdateInitWutongTaskStatus get region config file
 //
 // swagger:route PUT /enterprise-server/api/v1/enterprises/{eid}/init-tasks/{taskID}/status cloud init
 //
-// UpdateInitRainbondTaskStatusReq
+// UpdateInitWutongTaskStatusReq
 //
 // Produces:
 // - application/json
@@ -466,11 +466,11 @@ func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 // - application/json
 //
 // Responses:
-// 200: body:InitRainbondTaskRes
+// 200: body:InitWutongTaskRes
 // 400: body:Reponse
 // 500: body:Reponse
-func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
-	var req v1.UpdateInitRainbondTaskStatusReq
+func (e *ClusterHandler) UpdateInitWutongTaskStatus(ctx *gin.Context) {
+	var req v1.UpdateInitWutongTaskStatusReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		logrus.Errorf("bind update init status failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
@@ -478,7 +478,7 @@ func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
 	}
 	eid := ctx.Param("eid")
 	taskID := ctx.Param("taskID")
-	task, err := e.cluster.UpdateInitRainbondTaskStatus(eid, taskID, req.Status)
+	task, err := e.cluster.UpdateInitWutongTaskStatus(eid, taskID, req.Status)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -571,7 +571,7 @@ func (e *ClusterHandler) ReInstallKubernetesCluster(ctx *gin.Context) {
 func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 	var req v1.GetRegionConfigReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
-		logrus.Errorf("bind get rainbond region config failure %s", err.Error())
+		logrus.Errorf("bind get wutong region config failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
@@ -586,18 +586,18 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.GetKubeConfigRes{Config: kubeconfig}, nil)
 }
 
-//GetRainbondClusterConfig -
-func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
+//GetWutongClusterConfig -
+func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	_, config := e.cluster.GetRainbondClusterConfig(eid, clusterID)
+	_, config := e.cluster.GetWutongClusterConfig(eid, clusterID)
 	if config == "" {
 		config = `
-# apiVersion: rainbond.io/v1alpha1
-# kind: RainbondCluster
+# apiVersion: wutong.io/v1alpha1
+# kind: WutongCluster
 # metadata:
-#  name: rainbondcluster
-#  namespace: rbd-system
+#  name: wutongcluster
+#  namespace: wt-system
 # spec:
 #  ## set source build cache mode, default is hostpath, options: pv, hostpath
 #  cacheMode: hostpath
@@ -610,16 +610,16 @@ func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
 #	 - 192.168.10.6:2379
 #	 - 192.168.10.8:2379
 #	 - 192.168.10.4:2379
-#	 secretName: rbd-etcd-secret
+#	 secretName: wt-etcd-secret
 #  ## Specifies the outer network IP address of the gateway. As the access address.
 #  gatewayIngressIPs:
 #    - 39.101.149.237
 #  ## Specifies image hub info, deployment default hub when not set.
 #  imageHub:
-#	 domain: goodrain.me
+#	 domain: wutong.me
 #	 password: 526856c5
 #	 username: admin
-#  installVersion: v5.3.0-release
+#  installVersion: v1.0.0-stable
 #  ## Specifies the node that performs the component CI task.
 #  nodesForChaos:
 #   - externalIP: 121.89.192.53
@@ -630,39 +630,39 @@ func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
 #   - externalIP: 121.89.192.53
 #	  internalIP: 192.168.10.3
 #	  name: 39.101.149.237
-#  ## Specifies the rainbond component image hub address
-#  rainbondImageRepository: registry.cn-hangzhou.aliyuncs.com/goodrain
+#  ## Specifies the wutong component image hub address
+#  wutongImageRepository: swr.cn-southwest-2.myhuaweicloud.com/wutong
 #  ## Specifies shared storage provider.
-#  rainbondVolumeSpecRWX:
+#  wutongVolumeSpecRWX:
 #	 imageRepository: ""
 #	 storageClassName: glusterfs-simple
 #  ## Specifies the db connection info of region.
 #  regionDatabase:
 #	 host: 127.0.0.1
 #	 name: region
-#	 password: rainbond123456!
+#	 password: wutong123456!
 #	 port: 3306
 #	 username: root
 #  ## Specifies the default component domain name suffix. Not specified will be assigned by default
-#  suffixHTTPHost: xxxx.grapps.cn`
+#  suffixHTTPHost: xxxx.wtapps.cn`
 	}
-	re := v1.SetRainbondClusterConfigReq{
+	re := v1.SetWutongClusterConfigReq{
 		Config: config,
 	}
 	ginutil.JSON(ctx, re, nil)
 }
 
-//SetRainbondClusterConfig -
-func (e *ClusterHandler) SetRainbondClusterConfig(ctx *gin.Context) {
+//SetWutongClusterConfig -
+func (e *ClusterHandler) SetWutongClusterConfig(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	var req v1.SetRainbondClusterConfigReq
+	var req v1.SetWutongClusterConfigReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		logrus.Errorf("bind update init status failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	err := e.cluster.SetRainbondClusterConfig(eid, clusterID, req.Config)
+	err := e.cluster.SetWutongClusterConfig(eid, clusterID, req.Config)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -680,7 +680,7 @@ func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	err := e.cluster.UninstallRainbondRegion(eid, clusterID, req.ProviderName)
+	err := e.cluster.UninstallWutongRegion(eid, clusterID, req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -719,27 +719,27 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 	ginutil.JSONv2(c, rkeConfig, err)
 }
 
-// ListRainbondComponents returns a list of rainbond components.
-// @Summary returns a list of rainbond components.
+// ListWutongComponents returns a list of wutong components.
+// @Summary returns a list of wutong components.
 // @Tags cluster
-// @ID listRainbondComponents
+// @ID listWutongComponents
 // @Accept  json
 // @Produce  json
 // @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the identify of cluster"
 // @Param providerName query string true "the provider of the cluster"
-// @Success 200 {array} v1.RainbondComponent
-// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components [get]
-func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
+// @Success 200 {array} v1.WutongComponent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components [get]
+func (e *ClusterHandler) listWutongComponents(c *gin.Context) {
 	eid := c.Param("eid")
 	clusterID := c.Param("clusterID")
 	providerName := c.Query("providerName")
-	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), eid, clusterID, providerName)
+	components, err := e.cluster.ListWutongComponents(c.Request.Context(), eid, clusterID, providerName)
 	ginutil.JSONv2(c, components, err)
 }
 
-// listPodEvents returns a list of rainbond component pod events.
-// @Summary returns a list of rainbond component pod events.
+// listPodEvents returns a list of wutong component pod events.
+// @Summary returns a list of wutong component pod events.
 // @Tags cluster
 // @ID listPodEvents
 // @Accept  json
@@ -748,8 +748,8 @@ func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
 // @Param clusterID path string true "the identify of cluster"
 // @Param podName path string true "the name of pod"
 // @Param providerName query string true "the provider of the cluster"
-// @Success 200 {array} v1.RainbondComponentEvent
-// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events [get]
+// @Success 200 {array} v1.WutongComponentEvent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components/{podName}/events [get]
 func (e *ClusterHandler) listPodEvents(c *gin.Context) {
 	eid := c.Param("eid")
 	clusterID := c.Param("clusterID")

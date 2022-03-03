@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -25,32 +25,32 @@ import (
 	"runtime/debug"
 	"time"
 
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/nsqio/go-nsq"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
-	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/datastore"
-	"goodrain.com/cloud-adaptor/internal/operator"
-	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/internal/types"
-	"goodrain.com/cloud-adaptor/internal/usecase"
-	"goodrain.com/cloud-adaptor/pkg/util/constants"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
-	"goodrain.com/cloud-adaptor/version"
+	apiv1 "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/factory"
+	"github.com/wutong-paas/cloud-adaptor/internal/datastore"
+	"github.com/wutong-paas/cloud-adaptor/internal/operator"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/internal/types"
+	"github.com/wutong-paas/cloud-adaptor/internal/usecase"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/versionutil"
+	"github.com/wutong-paas/cloud-adaptor/version"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	v1 "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//InitRainbondCluster init rainbond cluster
-type InitRainbondCluster struct {
-	config *types.InitRainbondConfig
+//InitWutongCluster init wutong cluster
+type InitWutongCluster struct {
+	config *types.InitWutongConfig
 	result chan apiv1.Message
 }
 
-func (c *InitRainbondCluster) rollback(step, message, status string) {
+func (c *InitWutongCluster) rollback(step, message, status string) {
 	if status == "failure" {
 		logrus.Errorf("%s failure, Message: %s", step, message)
 	}
@@ -58,11 +58,11 @@ func (c *InitRainbondCluster) rollback(step, message, status string) {
 }
 
 //Run run take time 214.10s
-func (c *InitRainbondCluster) Run(ctx context.Context) {
+func (c *InitWutongCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
 	// create adaptor
-	adaptor, err := factory.GetCloudFactory().GetRainbondClusterAdaptor(c.config.Provider, c.config.AccessKey, c.config.SecretKey)
+	adaptor, err := factory.GetCloudFactory().GetWutongClusterAdaptor(c.config.Provider, c.config.AccessKey, c.config.SecretKey)
 	if err != nil {
 		c.rollback("Init", fmt.Sprintf("create cloud adaptor failure %s", err.Error()), "failure")
 		return
@@ -81,18 +81,18 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	}
 	// check cluster status
 	if cluster.State != "running" {
-		c.rollback("CheckCluster", fmt.Sprintf("cluster status is %s,not support init rainbond", cluster.State), "failure")
+		c.rollback("CheckCluster", fmt.Sprintf("cluster status is %s,not support init wutong", cluster.State), "failure")
 		return
 	}
 	// check cluster version
 	if !versionutil.CheckVersion(cluster.KubernetesVersion) {
-		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16.x-1.22.x", cluster.KubernetesVersion), "failure")
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init wutong support kubernetes version is 1.16.x-1.22.x", cluster.KubernetesVersion), "failure")
 		return
 	}
 	// check cluster connection status
 	logrus.Infof("init kubernetes url %s", cluster.MasterURL)
 	if cluster.MasterURL.APIServerEndpoint == "" {
-		c.rollback("CheckCluster", "cluster api not open eip,not support init rainbond", "failure")
+		c.rollback("CheckCluster", "cluster api not open eip,not support init wutong", "failure")
 		return
 	}
 
@@ -105,7 +105,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 	}
 
-	// check cluster not init rainbond
+	// check cluster not init wutong
 	coreClient, _, err := kubeConfig.GetKubeClient()
 	if err != nil {
 		c.rollback("CheckCluster", fmt.Sprintf("get kube config failure %s", err.Error()), "failure")
@@ -127,25 +127,25 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		cancel()
 	}
 	if len(nodes.Items) == 0 {
-		c.rollback("CheckCluster", "node num is 0, can not init rainbond", "failure")
+		c.rollback("CheckCluster", "node num is 0, can not init wutong", "failure")
 		return
 	}
 	c.rollback("CheckCluster", c.config.ClusterID, "success")
 
 	// select gateway and chaos node
-	gatewayNodes, chaosNodes := c.GetRainbondGatewayNodeAndChaosNodes(nodes.Items)
-	initConfig := adaptor.GetRainbondInitConfig(c.config.EnterpriseID, cluster, gatewayNodes, chaosNodes, c.rollback)
-	initConfig.RainbondVersion = version.RainbondRegionVersion
-	// init rainbond
-	c.rollback("InitRainbondRegionOperator", "", "start")
+	gatewayNodes, chaosNodes := c.GetWutongGatewayNodeAndChaosNodes(nodes.Items)
+	initConfig := adaptor.GetWutongInitConfig(c.config.EnterpriseID, cluster, gatewayNodes, chaosNodes, c.rollback)
+	initConfig.WutongVersion = version.WutongRegionVersion
+	// init wutong
+	c.rollback("InitWutongRegionOperator", "", "start")
 	if len(initConfig.EIPs) == 0 {
-		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
+		c.rollback("InitWutongRegionOperator", "can not select eip", "failure")
 		return
 	}
 
-	rri := operator.NewRainbondRegionInit(*kubeConfig, repo.NewRainbondClusterConfigRepo(datastore.GetGDB()))
-	if err := rri.InitRainbondRegion(initConfig); err != nil {
-		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
+	rri := operator.NewWutongRegionInit(*kubeConfig, repo.NewWutongClusterConfigRepo(datastore.GetGDB()))
+	if err := rri.InitWutongRegion(initConfig); err != nil {
+		c.rollback("InitWutongRegionOperator", err.Error(), "failure")
 		return
 	}
 	ticker := time.NewTicker(time.Second * 5)
@@ -156,39 +156,39 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	for {
 		select {
 		case <-ctx.Done():
-			c.rollback("InitRainbondRegion", "context cancel", "failure")
+			c.rollback("InitWutongRegion", "context cancel", "failure")
 			return
 		case <-ticker.C:
 		case <-timer.C:
-			c.rollback("InitRainbondRegion", "waiting rainbond region ready timeout", "failure")
+			c.rollback("InitWutongRegion", "waiting wutong region ready timeout", "failure")
 			return
 		}
-		status, err := rri.GetRainbondRegionStatus(initConfig.ClusterID)
+		status, err := rri.GetWutongRegionStatus(initConfig.ClusterID)
 		if err != nil {
 			if k8sErrors.IsNotFound(err) {
-				c.rollback("InitRainbondRegion", err.Error(), "failure")
+				c.rollback("InitWutongRegion", err.Error(), "failure")
 				return
 			}
-			logrus.Errorf("get rainbond region status failure %s", err.Error())
+			logrus.Errorf("get wutong region status failure %s", err.Error())
 		}
 		if status == nil {
 			continue
 		}
 		if status.OperatorReady && !operatorMessage {
-			c.rollback("InitRainbondRegionOperator", "", "success")
-			c.rollback("InitRainbondRegionImageHub", "", "start")
+			c.rollback("InitWutongRegionOperator", "", "success")
+			c.rollback("InitWutongRegionImageHub", "", "start")
 			operatorMessage = true
 			continue
 		}
 
-		if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); !imageHubMessage && idx != -1 && condition.Status == v1.ConditionTrue {
-			c.rollback("InitRainbondRegionImageHub", "", "success")
-			c.rollback("InitRainbondRegionPackage", "", "start")
+		if idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeImageRepository); !imageHubMessage && idx != -1 && condition.Status == v1.ConditionTrue {
+			c.rollback("InitWutongRegionImageHub", "", "success")
+			c.rollback("InitWutongRegionPackage", "", "start")
 			imageHubMessage = true
 			continue
 		}
-		statusStr := fmt.Sprintf("Push Images:%d/%d\t", len(status.RainbondPackage.Status.ImagesPushed), status.RainbondPackage.Status.ImagesNumber)
-		for _, con := range status.RainbondCluster.Status.Conditions {
+		statusStr := fmt.Sprintf("Push Images:%d/%d\t", len(status.WutongPackage.Status.ImagesPushed), status.WutongPackage.Status.ImagesNumber)
+		for _, con := range status.WutongCluster.Status.Conditions {
 			if con.Status == v1.ConditionTrue {
 				statusStr += fmt.Sprintf("%s=>%s;\t", con.Type, con.Status)
 			} else {
@@ -197,41 +197,41 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 		logrus.Infof("cluster %s states: %s", cluster.Name, statusStr)
 
-		for _, con := range status.RainbondPackage.Status.Conditions {
-			if con.Type == rainbondv1alpha1.Ready && con.Status == rainbondv1alpha1.Completed && !packageMessage {
-				c.rollback("InitRainbondRegionPackage", "", "success")
-				c.rollback("InitRainbondRegionRegionConfig", "", "start")
+		for _, con := range status.WutongPackage.Status.Conditions {
+			if con.Type == wutongv1alpha1.Ready && con.Status == wutongv1alpha1.Completed && !packageMessage {
+				c.rollback("InitWutongRegionPackage", "", "success")
+				c.rollback("InitWutongRegionRegionConfig", "", "start")
 				packageMessage = true
 			}
 			continue
 		}
 
-		idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+		idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeRunning)
 		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
 			apiReadyMessage = true
 			break
 		}
 	}
-	c.rollback("InitRainbondRegion", cluster.ClusterID, "success")
+	c.rollback("InitWutongRegion", cluster.ClusterID, "success")
 }
 
-//GetRainbondGatewayNodeAndChaosNodes get gateway nodes
-func (c *InitRainbondCluster) GetRainbondGatewayNodeAndChaosNodes(nodes []v1.Node) (gatewayNodes, chaosNodes []*rainbondv1alpha1.K8sNode) {
+//GetWutongGatewayNodeAndChaosNodes get gateway nodes
+func (c *InitWutongCluster) GetWutongGatewayNodeAndChaosNodes(nodes []v1.Node) (gatewayNodes, chaosNodes []*wutongv1alpha1.K8sNode) {
 	for _, node := range nodes {
-		if node.Annotations["rainbond.io/gateway-node"] == "true" {
+		if node.Annotations["wutong.io/gateway-node"] == "true" {
 			gatewayNodes = append(gatewayNodes, getK8sNode(node))
 		}
-		if node.Annotations["rainbond.io/chaos-node"] == "true" {
+		if node.Annotations["wutong.io/chaos-node"] == "true" {
 			chaosNodes = append(chaosNodes, getK8sNode(node))
 		}
 	}
 	if len(gatewayNodes) == 0 {
 		if len(nodes) < 2 {
-			gatewayNodes = []*rainbondv1alpha1.K8sNode{
+			gatewayNodes = []*wutongv1alpha1.K8sNode{
 				getK8sNode(nodes[0]),
 			}
 		} else {
-			gatewayNodes = []*rainbondv1alpha1.K8sNode{
+			gatewayNodes = []*wutongv1alpha1.K8sNode{
 				getK8sNode(nodes[0]),
 				getK8sNode(nodes[1]),
 			}
@@ -239,11 +239,11 @@ func (c *InitRainbondCluster) GetRainbondGatewayNodeAndChaosNodes(nodes []v1.Nod
 	}
 	if len(chaosNodes) == 0 {
 		if len(nodes) < 2 {
-			chaosNodes = []*rainbondv1alpha1.K8sNode{
+			chaosNodes = []*wutongv1alpha1.K8sNode{
 				getK8sNode(nodes[0]),
 			}
 		} else {
-			chaosNodes = []*rainbondv1alpha1.K8sNode{
+			chaosNodes = []*wutongv1alpha1.K8sNode{
 				getK8sNode(nodes[0]),
 				getK8sNode(nodes[1]),
 			}
@@ -253,17 +253,17 @@ func (c *InitRainbondCluster) GetRainbondGatewayNodeAndChaosNodes(nodes []v1.Nod
 }
 
 // Stop init
-func (c *InitRainbondCluster) Stop() error {
+func (c *InitWutongCluster) Stop() error {
 	return nil
 }
 
 //GetChan get message chan
-func (c *InitRainbondCluster) GetChan() chan apiv1.Message {
+func (c *InitWutongCluster) GetChan() chan apiv1.Message {
 	return c.result
 }
 
-func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
-	var Knode rainbondv1alpha1.K8sNode
+func getK8sNode(node v1.Node) *wutongv1alpha1.K8sNode {
+	var Knode wutongv1alpha1.K8sNode
 	for _, address := range node.Status.Addresses {
 		if address.Type == v1.NodeInternalIP {
 			Knode.InternalIP = address.Address
@@ -297,12 +297,12 @@ func NewCloudInitTaskHandler(clusterUsecase *usecase.ClusterUsecase) CloudInitTa
 }
 
 // HandleMsg -
-func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig types.InitRainbondConfigMessage) error {
+func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig types.InitWutongConfigMessage) error {
 	if _, exist := h.handledTask[initConfig.TaskID]; exist {
 		logrus.Infof("task %s is running or complete,ignore", initConfig.TaskID)
 		return nil
 	}
-	initTask, err := CreateTask(InitRainbondClusterTask, initConfig.InitRainbondConfig)
+	initTask, err := CreateTask(InitWutongClusterTask, initConfig.InitWutongConfig)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
 		h.eventHandler.HandleEvent(initConfig.GetEvent(&apiv1.Message{
@@ -326,19 +326,19 @@ func (h *cloudInitTaskHandler) HandleMessage(m *nsq.Message) error {
 		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
 		return nil
 	}
-	var initConfig types.InitRainbondConfigMessage
+	var initConfig types.InitWutongConfigMessage
 	if err := json.Unmarshal(m.Body, &initConfig); err != nil {
-		logrus.Errorf("unmarshal init rainbond config message failure %s", err.Error())
+		logrus.Errorf("unmarshal init wutong config message failure %s", err.Error())
 		return nil
 	}
 	if err := h.HandleMsg(context.Background(), initConfig); err != nil {
-		logrus.Errorf("handle init rainbond config message failure %s", err.Error())
+		logrus.Errorf("handle init wutong config message failure %s", err.Error())
 		return nil
 	}
 	return nil
 }
 
-func (h *cloudInitTaskHandler) run(ctx context.Context, initTask Task, initConfig types.InitRainbondConfigMessage) {
+func (h *cloudInitTaskHandler) run(ctx context.Context, initTask Task, initConfig types.InitWutongConfigMessage) {
 	defer func() {
 		h.handledTask[initConfig.TaskID] = "complete"
 	}()
@@ -360,5 +360,5 @@ func (h *cloudInitTaskHandler) run(ctx context.Context, initTask Task, initConfi
 	initTask.Run(ctx)
 	//waiting message handle complete
 	<-closeChan
-	logrus.Infof("init rainbond region task %s handle success", initConfig.TaskID)
+	logrus.Infof("init wutong region task %s handle success", initConfig.TaskID)
 }

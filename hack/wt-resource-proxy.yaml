@@ -1,0 +1,16 @@
+apiVersion: wutong.io/v1alpha1
+kind: WutongComponent
+metadata:
+  creationTimestamp: '2021-02-24T02:06:33Z'
+  generation: 2
+  labels:
+    belongTo: wutong-operator
+    creator: Wutong
+    name: wt-resource-proxy
+  name: wt-resource-proxy
+  namespace: wt-system
+spec:
+  image: swr.cn-southwest-2.myhuaweicloud.com/wutong/wt-resource-proxy:v1.0.0-stable
+  imagePullPolicy: IfNotPresent
+  priorityComponent: false
+  replicas: 1

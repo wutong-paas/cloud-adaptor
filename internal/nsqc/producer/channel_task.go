@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -19,20 +19,20 @@
 package producer
 
 import (
-	"goodrain.com/cloud-adaptor/internal/types"
-	"goodrain.com/cloud-adaptor/pkg/util/constants"
+	"github.com/wutong-paas/cloud-adaptor/internal/types"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 )
 
 //TaskProducer task producer
 type taskChannelProducer struct {
 	createQueue chan types.KubernetesConfigMessage
-	initQueue   chan types.InitRainbondConfigMessage
+	initQueue   chan types.InitWutongConfigMessage
 	updateQueue chan types.UpdateKubernetesConfigMessage
 }
 
 //NewTaskChannelProducer new task channel producer
 func NewTaskChannelProducer(createQueue chan types.KubernetesConfigMessage,
-	initQueue chan types.InitRainbondConfigMessage,
+	initQueue chan types.InitWutongConfigMessage,
 	updateQueue chan types.UpdateKubernetesConfigMessage) TaskProducer {
 	return &taskChannelProducer{
 		createQueue: createQueue,
@@ -52,7 +52,7 @@ func (c *taskChannelProducer) sendTask(topicName string, taskConfig interface{})
 		c.createQueue <- taskConfig.(types.KubernetesConfigMessage)
 	}
 	if topicName == constants.CloudInit {
-		c.initQueue <- taskConfig.(types.InitRainbondConfigMessage)
+		c.initQueue <- taskConfig.(types.InitWutongConfigMessage)
 	}
 	if topicName == constants.CloudUpdate {
 		c.updateQueue <- taskConfig.(types.UpdateKubernetesConfigMessage)
@@ -65,8 +65,8 @@ func (c *taskChannelProducer) SendCreateKuerbetesTask(config types.KubernetesCon
 	return c.sendTask(constants.CloudCreate, config)
 }
 
-//SendInitRainbondRegionTask send init rainbond region task
-func (c *taskChannelProducer) SendInitRainbondRegionTask(config types.InitRainbondConfigMessage) error {
+//SendInitWutongRegionTask send init wutong region task
+func (c *taskChannelProducer) SendInitWutongRegionTask(config types.InitWutongConfigMessage) error {
 	return c.sendTask(constants.CloudInit, config)
 }
 func (c *taskChannelProducer) SendUpdateKuerbetesTask(config types.UpdateKubernetesConfigMessage) error {

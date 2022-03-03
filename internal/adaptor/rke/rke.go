@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2021 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -22,16 +22,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"goodrain.com/cloud-adaptor/internal/repo"
+	"github.com/wutong-paas/cloud-adaptor/pkg/util/versionutil"
 
-	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/repo"
+
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/cmd"
 	"github.com/rancher/rke/hosts"
@@ -40,11 +40,12 @@ import (
 	"github.com/rancher/rke/pki/cert"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/datastore"
-	"goodrain.com/cloud-adaptor/internal/model"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/datastore"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
+	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
@@ -55,7 +56,7 @@ type rkeAdaptor struct {
 }
 
 //Create create ack adaptor
-func Create() (adaptor.RainbondClusterAdaptor, error) {
+func Create() (adaptor.WutongClusterAdaptor, error) {
 	return &rkeAdaptor{
 		Repo: repo.NewRKEClusterRepo(datastore.GetGDB()),
 	}, nil
@@ -96,19 +97,19 @@ func (r *rkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, 
 
 func (r *rkeAdaptor) DeleteCluster(eid, clusterID string) error {
 	cluster, _ := r.DescribeCluster(eid, clusterID)
-	if cluster != nil && cluster.RainbondInit {
+	if cluster != nil && cluster.WutongInit {
 		return bcode.ErrClusterNotAllowDelete
 	}
 	return r.Repo.DeleteCluster(eid, clusterID)
 }
 
-func (r *rkeAdaptor) GetRainbondInitConfig(
+func (r *rkeAdaptor) GetWutongInitConfig(
 	eid string,
 	cluster *v1alpha1.Cluster,
-	gateway, chaos []*rainbondv1alpha1.K8sNode,
+	gateway, chaos []*wutongv1alpha1.K8sNode,
 	rollback func(step, message, status string),
-) *v1alpha1.RainbondInitConfig {
-	return &v1alpha1.RainbondInitConfig{
+) *v1alpha1.WutongInitConfig {
+	return &v1alpha1.WutongInitConfig{
 		EnableHA: func() bool {
 			if cluster.Size > 3 {
 				return true
@@ -118,7 +119,7 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 		ClusterID:    cluster.ClusterID,
 		GatewayNodes: gateway,
 		ChaosNodes:   chaos,
-		ETCDConfig:   &rainbondv1alpha1.EtcdConfig{},
+		ETCDConfig:   &wutongv1alpha1.EtcdConfig{},
 		EIPs: func() (re []string) {
 			if len(cluster.EIP) > 0 {
 				return cluster.EIP
@@ -140,7 +141,7 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 	}
 }
 
-func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("InitClusterConfig", "", "start")
 	rkecluster, err := r.Repo.GetCluster(eid, config.ClusterName)
 	if err != nil {
@@ -301,14 +302,14 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 		KubernetesVersion: rkecluster.KubernetesVersion,
 		CreateLogPath:     rkecluster.CreateLogPath,
 		Size:              len(nodes),
-		RainbondInit:      false,
+		WutongInit:        false,
 		Parameters:        make(map[string]interface{}),
 	}
 	if rkecluster.KubeConfig != "" {
 		kc := v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}
 		coreclient, _, err := kc.GetKubeClient()
 		if err != nil {
-			cluster.Parameters["DisableRainbondInit"] = true
+			cluster.Parameters["DisableWutongInit"] = true
 			cluster.Parameters["Message"] = "无法创建集群通信客户端"
 			logrus.Errorf("create kube client failure %s", err.Error())
 		}
@@ -321,18 +322,18 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			if err == nil {
 				cluster.CurrentVersion = info.String()
 				if !versionutil.CheckVersion(cluster.CurrentVersion) {
-					cluster.Parameters["DisableRainbondInit"] = true
-					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
+					cluster.Parameters["DisableWutongInit"] = true
+					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Wutong支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
 				}
 				cluster.State = v1alpha1.RunningState
 			} else {
 				cluster.State = v1alpha1.OfflineState
-				cluster.Parameters["DisableRainbondInit"] = true
+				cluster.Parameters["DisableWutongInit"] = true
 				cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 			}
-			_, err = coreclient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
+			_, err = coreclient.CoreV1().ConfigMaps("wt-system").Get(ctx, "region-config", metav1.GetOptions{})
 			if err == nil {
-				cluster.RainbondInit = true
+				cluster.WutongInit = true
 			}
 
 			ctx2, cancel := context.WithTimeout(context.Background(), time.Second*3)

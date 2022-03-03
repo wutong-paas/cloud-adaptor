@@ -6,20 +6,20 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: rainbondclusters.rainbond.io
+  name: wutongclusters.wutong.io
 spec:
-  group: rainbond.io
+  group: wutong.io
   names:
-    kind: RainbondCluster
-    listKind: RainbondClusterList
-    plural: rainbondclusters
-    singular: rainbondcluster
+    kind: WutongCluster
+    listKind: WutongClusterList
+    plural: wutongclusters
+    singular: wutongcluster
   scope: Namespaced
   versions:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: RainbondCluster is the Schema for the rainbondclusters API
+        description: WutongCluster is the Schema for the wutongclusters API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -34,7 +34,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: RainbondClusterSpec defines the desired state of RainbondCluster
+            description: WutongClusterSpec defines the desired state of WutongCluster
             properties:
               cacheMode:
                 type: string
@@ -48,8 +48,8 @@ spec:
                 description: EnableHA is a highly available switch.
                 type: boolean
               etcdConfig:
-                description: the etcd connection information that rainbond component
-                  will be used. rainbond-operator will create one if EtcdConfig is
+                description: the etcd connection information that wutong component
+                  will be used. wutong-operator will create one if EtcdConfig is
                   empty
                 properties:
                   endpoints:
@@ -62,13 +62,13 @@ spec:
                     type: string
                 type: object
               gatewayIngressIPs:
-                description: Ingress IP addresses of rbd-gateway. If not specified,
-                  the IP of the node where the rbd-gateway is located will be used.
+                description: Ingress IP addresses of wt-gateway. If not specified,
+                  the IP of the node where the wt-gateway is located will be used.
                 items:
                   type: string
                 type: array
               imageHub:
-                description: User-specified private image repository, replacing goodrain.me.
+                description: User-specified private image repository, replacing wutong.me.
                 properties:
                   domain:
                     type: string
@@ -80,14 +80,14 @@ spec:
                     type: string
                 type: object
               installMode:
-                description: InstallMode is the mode of Rainbond cluster installation.
+                description: InstallMode is the mode of Wutong cluster installation.
                 type: string
               installVersion:
-                description: define install rainbond version, This is usually image
+                description: define install wutong version, This is usually image
                   tag
                 type: string
               nodesForChaos:
-                description: Specify the nodes where the rbd-gateway will running.
+                description: Specify the nodes where the wt-gateway will running.
                 items:
                   description: K8sNode holds the information about a kubernetes node.
                   properties:
@@ -100,7 +100,7 @@ spec:
                   type: object
                 type: array
               nodesForGateway:
-                description: Specify the nodes where the rbd-gateway will running.
+                description: Specify the nodes where the wt-gateway will running.
                 items:
                   description: K8sNode holds the information about a kubernetes node.
                   properties:
@@ -112,11 +112,11 @@ spec:
                       type: string
                   type: object
                 type: array
-              rainbondImageRepository:
-                description: Repository of each Rainbond component image, eg. docker.io/rainbond.
+              wutongImageRepository:
+                description: Repository of each Wutong component image, eg. docker.io/wutong.
                 type: string
-              rainbondVolumeSpecRWO:
-                description: RainbondVolumeSpec defines the desired state of RainbondVolume
+              wutongVolumeSpecRWO:
+                description: WutongVolumeSpec defines the desired state of WutongVolume
                 properties:
                   csiPlugin:
                     description: CSIPlugin holds the image
@@ -166,7 +166,7 @@ spec:
                     type: string
                   storageClassName:
                     description: 'The name of StorageClass, which is a kind of kubernetes
-                      resource. It will used to create pvc for rainbond components.
+                      resource. It will used to create pvc for wutong components.
                       More info: https://kubernetes.io/docs/concepts/storage/storage-classes/'
                     type: string
                   storageClassParameters:
@@ -198,8 +198,8 @@ spec:
                 required:
                 - imageRepository
                 type: object
-              rainbondVolumeSpecRWX:
-                description: RainbondVolumeSpec defines the desired state of RainbondVolume
+              wutongVolumeSpecRWX:
+                description: WutongVolumeSpec defines the desired state of WutongVolume
                 properties:
                   csiPlugin:
                     description: CSIPlugin holds the image
@@ -249,7 +249,7 @@ spec:
                     type: string
                   storageClassName:
                     description: 'The name of StorageClass, which is a kind of kubernetes
-                      resource. It will used to create pvc for rainbond components.
+                      resource. It will used to create pvc for wutong components.
                       More info: https://kubernetes.io/docs/concepts/storage/storage-classes/'
                     type: string
                   storageClassParameters:
@@ -282,8 +282,8 @@ spec:
                 - imageRepository
                 type: object
               regionDatabase:
-                description: the region database information that rainbond component
-                  will be used. rainbond-operator will create one if DBInfo is empty
+                description: the region database information that wutong component
+                  will be used. wutong-operator will create one if DBInfo is empty
                 properties:
                   host:
                     type: string
@@ -297,14 +297,14 @@ spec:
                     type: string
                 type: object
               sentinelImage:
-                description: SentinelImage is the image for rainbond operator sentinel
+                description: SentinelImage is the image for wutong operator sentinel
                 type: string
               suffixHTTPHost:
                 description: Suffix of component default domain name
                 type: string
               uiDatabase:
-                description: the ui database information that rainbond component will
-                  be used. rainbond-operator will create one if DBInfo is empty
+                description: the ui database information that wutong component will
+                  be used. wutong-operator will create one if DBInfo is empty
                 properties:
                   host:
                     type: string
@@ -321,10 +321,10 @@ spec:
             - suffixHTTPHost
             type: object
           status:
-            description: RainbondClusterStatus defines the observed state of RainbondCluster
+            description: WutongClusterStatus defines the observed state of WutongCluster
             properties:
               chaosAvailableNodes:
-                description: holds some recommend nodes available for rbd-chaos to
+                description: holds some recommend nodes available for wt-chaos to
                   run.
                 properties:
                   masterNodes:
@@ -358,8 +358,8 @@ spec:
                 type: object
               conditions:
                 items:
-                  description: RainbondClusterCondition contains condition information
-                    for rainbondcluster.
+                  description: WutongClusterCondition contains condition information
+                    for wutongcluster.
                   properties:
                     lastHeartbeatTime:
                       description: Last time we got an update on a given condition.
@@ -381,7 +381,7 @@ spec:
                       description: Status of the condition, one of True, False, Unknown.
                       type: string
                     type:
-                      description: Type of rainbondclsuter condition.
+                      description: Type of wutongclsuter condition.
                       type: string
                   required:
                   - status
@@ -389,7 +389,7 @@ spec:
                   type: object
                 type: array
               gatewayAvailableNodes:
-                description: holds some recommend nodes available for rbd-gateway
+                description: holds some recommend nodes available for wt-gateway
                   to run.
                 properties:
                   masterNodes:

@@ -17,7 +17,7 @@ function install_docker() {
         return 0
     }
 
-    DOCKER_URL="https://rainbond-pkg.oss-cn-shanghai.aliyuncs.com/offline/docker/docker-${DOCKER_VER}.tgz"
+    DOCKER_URL="https://wutong-pkg.oss-cn-shanghai.aliyuncs.com/offline/docker/docker-${DOCKER_VER}.tgz"
 
     sudo mkdir -p /usr/local/bin /etc/docker /opt/docker/down
     if [[ -f "/opt/docker/down/docker-${DOCKER_VER}.tgz" ]]; then
@@ -127,7 +127,7 @@ function add_user_in_redhat() {
 
 function add_user() {
     user=${DOCKER_USER:-"docker"}
-    pass=${DOCKER_PASS:-'rbd-123465!'}
+    pass=${DOCKER_PASS:-'wt123465!'}
     
     sudo groupadd --force docker
 

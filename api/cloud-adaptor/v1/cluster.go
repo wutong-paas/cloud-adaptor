@@ -1,11 +1,11 @@
-// RAINBOND, Application Management Platform
-// Copyright (C) 2020-2020 Goodrain Co., Ltd.
+// WUTONG, Application Management Platform
+// Copyright (C) 2020-2020 Wutong Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version. For any non-GPL usage of Rainbond,
-// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// (at your option) any later version. For any non-GPL usage of Wutong,
+// one or multiple Commercial Licenses authorized by Wutong Co., Ltd.
 // must be obtained first.
 
 // This program is distributed in the hope that it will be useful,
@@ -21,12 +21,12 @@ package v1
 import (
 	"encoding/json"
 
-	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/model"
+	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
+	"github.com/wutong-paas/cloud-adaptor/internal/model"
 	corev1 "k8s.io/api/core/v1"
 )
 
-var rbdComponentPodPhaseScore = map[string]int{
+var wutongComponentPodPhaseScore = map[string]int{
 	"Succeeded": 0,
 	"Running":   1,
 	"Unknown":   2,
@@ -138,30 +138,30 @@ type TaskEventListRes struct {
 	Events []*model.TaskEvent `json:"events"`
 }
 
-//InitRainbondRegionReq init rainbond region
-//swagger:model InitRainbondRegionReq
-type InitRainbondRegionReq struct {
+//InitWutongRegionReq init wutong region
+//swagger:model InitWutongRegionReq
+type InitWutongRegionReq struct {
 	Provider  string `json:"providerName" binding:"required"`
 	ClusterID string `json:"clusterID" binding:"required"`
 	Retry     bool   `json:"retry"`
 }
 
-//InitRainbondTaskRes init rainbond region response
-//swagger:model InitRainbondTaskRes
-type InitRainbondTaskRes struct {
-	model.InitRainbondTask
+//InitWutongTaskRes init wutong region response
+//swagger:model InitWutongTaskRes
+type InitWutongTaskRes struct {
+	model.InitWutongTask
 }
 
-//GetInitRainbondTaskReq get init rainbond task
-//swagger:model GetInitRainbondTaskReq
-type GetInitRainbondTaskReq struct {
+//GetInitWutongTaskReq get init wutong task
+//swagger:model GetInitWutongTaskReq
+type GetInitWutongTaskReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-// InitRainbondTaskListRes running init tasks
-//swagger:model InitRainbondTaskListRes
-type InitRainbondTaskListRes struct {
-	Tasks []*model.InitRainbondTask `json:"tasks"`
+// InitWutongTaskListRes running init tasks
+//swagger:model InitWutongTaskListRes
+type InitWutongTaskListRes struct {
+	Tasks []*model.InitWutongTask `json:"tasks"`
 }
 
 // GetRegionConfigRes region configs
@@ -171,15 +171,15 @@ type GetRegionConfigRes struct {
 	ConfigYaml string            `json:"configs_yaml"`
 }
 
-//GetRegionConfigReq get rainbond region config
+//GetRegionConfigReq get wutong region config
 //swagger:model GetRegionConfigReq
 type GetRegionConfigReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//UpdateInitRainbondTaskStatusReq update init task status
-//swagger:model UpdateInitRainbondTaskStatusReq
-type UpdateInitRainbondTaskStatusReq struct {
+//UpdateInitWutongTaskStatusReq update init task status
+//swagger:model UpdateInitWutongTaskStatusReq
+type UpdateInitWutongTaskStatusReq struct {
 	Status string `json:"status" binding:"required"`
 }
 
@@ -222,8 +222,8 @@ type Message struct {
 	Status   string `json:"status"`
 }
 
-//SetRainbondClusterConfigReq -
-type SetRainbondClusterConfigReq struct {
+//SetWutongClusterConfigReq -
+type SetWutongClusterConfigReq struct {
 	Config string `json:"config" binding:"required"`
 }
 
@@ -254,32 +254,32 @@ type PruneUpdateRKEConfigResp struct {
 	EncodedRKEConfig string            `json:"encodeRKEConfig"`
 }
 
-// RainbondComponent rainbond components
-type RainbondComponent struct {
+// WutongComponent wutong components
+type WutongComponent struct {
 	App  string       `json:"app"`
 	Pods []corev1.Pod `json:"pods"`
 }
 
-// ByRainbondComponentPodPhase implements sort.Interface for []*RainbondComponent based on
+// ByWutongComponentPodPhase implements sort.Interface for []*WutongComponent based on
 // the Pod Phase field.
-type ByRainbondComponentPodPhase []*RainbondComponent
+type ByWutongComponentPodPhase []*WutongComponent
 
-func (a ByRainbondComponentPodPhase) Len() int      { return len(a) }
-func (a ByRainbondComponentPodPhase) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
-func (a ByRainbondComponentPodPhase) Less(i, j int) bool {
+func (a ByWutongComponentPodPhase) Len() int      { return len(a) }
+func (a ByWutongComponentPodPhase) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByWutongComponentPodPhase) Less(i, j int) bool {
 	return a.phaseScore(i) > a.phaseScore(j)
 }
 
-func (a ByRainbondComponentPodPhase) phaseScore(i int) int {
+func (a ByWutongComponentPodPhase) phaseScore(i int) int {
 	pods := a[i].Pods
 	var score int
 	for _, pod := range pods {
-		score += rbdComponentPodPhaseScore[string(pod.Status.Phase)]
+		score += wutongComponentPodPhaseScore[string(pod.Status.Phase)]
 	}
 	return score
 }
 
-// RainbondComponentEvent -
-type RainbondComponentEvent struct {
+// WutongComponentEvent -
+type WutongComponentEvent struct {
 	corev1.Event
 }
