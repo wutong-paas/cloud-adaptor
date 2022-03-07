@@ -14,8 +14,10 @@ FROM alpine:3.11.2
 WORKDIR /app
 RUN apk add --update tzdata \
     && apk add --update apache2-utils \
-    && rm -rf /var/cache/apk/*
+    && rm -rf /var/cache/apk/* \
+    && wget -q https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm && chmod +x helm
 ENV TZ=Asia/Shanghai
-COPY --from=builder cloud-adaptor .
+COPY --from=builder /cloud-adaptor .
+COPY --from=builder /app/chart /app/chart
 
 ENTRYPOINT ["./cloud-adaptor"]
