@@ -19,16 +19,14 @@ RUN apk add --update tzdata \
     && wget -q https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm \
     && chmod +x helm \
     && mv helm /usr/local/bin \
-    && helm add wutong https://wutong-paas.github.io/helm-charts && helm update \
+    && helm repo add wutong https://wutong-paas.github.io/helm-charts && helm repo update \
 ENV TZ=Asia/Shanghai
 ENV DB_PATH=/app/data/cloudadaptor
-ENV CHART_PATH=/app/chart
 ENV CONFIG_DIR=/app/data/cloudadaptor
 ENV HELM_PATH=/usr/local/bin/helm
 ENV MYSQL_DB=console
 
 COPY --from=builder /cloud-adaptor .
-COPY --from=builder /app/chart ./chart
 
 VOLUME /app/data
 

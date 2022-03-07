@@ -50,15 +50,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-var helmPath = "/Users/barnett/bin/helm"
-var chartPath = "/Users/barnett/coding/gopath/src/github.com/wutong-paas/cloud-adaptor/chart"
+var helmPath = "/usr/local/bin/helm"
 
 func init() {
 	if os.Getenv("HELM_PATH") != "" {
 		helmPath = os.Getenv("HELM_PATH")
-	}
-	if os.Getenv("CHART_PATH") != "" {
-		chartPath = os.Getenv("CHART_PATH")
 	}
 }
 
@@ -109,7 +105,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 
 	// helm create wutong operator chart
 	defaultArgs := []string{
-		helmPath, "install", "wutong-operator", chartPath, "-n", r.namespace,
+		helmPath, "install", "wutong-operator", "wutong/wutong-operator", "-n", r.namespace,
 		"--kubeconfig", kubeconfigFileName,
 		"--set", "operator.image.name=" + fmt.Sprintf("%s/wutong-operator", version.InstallImageRepo),
 		"--set", "operator.image.tag=" + version.OperatorVersion}
