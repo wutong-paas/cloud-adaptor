@@ -17,7 +17,7 @@ RUN apk add --update tzdata && \
     rm -rf /var/cache/apk/* && \
     mkdir /app/data && \
     if ["$[GOARCH]" = "arm64" ]; then \
-      wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm64 && chmod +x helm64 && mv helm64 /usr/local/bin/helm; \
+      wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm-arm64 && chmod +x helm-arm64 && mv helm-arm64 /usr/local/bin/helm; \
     else \
       wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm && chmod +x helm && mv helm /usr/local/bin/; \
     fi && \
