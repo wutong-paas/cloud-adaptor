@@ -25,3 +25,14 @@ jobs:
           tags: swr.cn-southwest-2.myhuaweicloud.com/wutong/wutong-adaptor:v1.0.0-stable
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Build arm64 and push
+        id: docker_build_arm64
+        uses: docker/build-push-action@v2
+        with:
+          build-args:
+          - GOARCH=arm64
+          push: true
+          file: Dockerfile
+          tags: swr.cn-southwest-2.myhuaweicloud.com/wutong/wutong-adaptor:v1.0.0-arm64-stable
+      - name: Image arm64 digest
+        run: echo ${{ steps.docker_build_arm64.outputs.digest }}
