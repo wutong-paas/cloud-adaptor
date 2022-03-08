@@ -1,7 +1,9 @@
 name: Go
 
 # Triggers the workflow on push or pull request events
-on: [push]
+on: 
+  push:
+    branches: [master]
 
 jobs:
   build:
@@ -19,6 +21,3 @@ jobs:
 
       - name: Lint
         run: go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
-
-      - name: Build
-        run: go build -v ./...
