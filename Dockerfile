@@ -1,3 +1,5 @@
+ARG GOARCH=amd64
+
 FROM golang:1.13 as builder
 ENV CGO_ENABLED=0
 ENV GOPATH=/go
@@ -6,11 +8,12 @@ ENV GOPROXY=https://goproxy.cn
 WORKDIR /app
 COPY . .
 
-ARG GOARCH=amd64
+ARG GOARCH
 ARG LDFLAGS
 RUN GOOS=linux GOARCH="${GOARCH}" GO111MODULE=on go build -ldflags "$LDFLAGS" -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM alpine:3.11.2
+ARG GOARCH
 WORKDIR /app
 RUN apk add --update tzdata && \
     apk add --update apache2-utils && \
