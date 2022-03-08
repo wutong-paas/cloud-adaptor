@@ -16,10 +16,10 @@ RUN apk add --update tzdata && \
     apk add --update apache2-utils && \
     rm -rf /var/cache/apk/* && \
     mkdir /app/data && \
-    if ["$[GOARCH]" = "arm64" ]; then \
+    if ["${GOARCH}" = "arm64" ]; then \
       wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm-arm64 && chmod +x helm-arm64 && mv helm-arm64 /usr/local/bin/helm; \
     else \
-      wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm && chmod +x helm && mv helm /usr/local/bin/; \
+      wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm && chmod +x helm && mv helm /usr/local/bin/helm; \
     fi && \
     helm repo add wutong https://wutong-paas.github.io/helm-charts && helm repo update
 ENV TZ=Asia/Shanghai
