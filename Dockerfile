@@ -6,7 +6,7 @@ ENV GOPROXY=https://goproxy.cn
 WORKDIR /app
 COPY . .
 
-ARG GOARCH
+ARG GOARCH=amd64
 ARG LDFLAGS
 RUN GOOS=linux GOARCH="${GOARCH}" GO111MODULE=on go build -ldflags "$LDFLAGS" -o /cloud-adaptor ./cmd/cloud-adaptor
 
