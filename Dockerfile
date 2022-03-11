@@ -1,21 +1,22 @@
-FROM golang:1.13 as builder
+FROM --platform=$BUILDPLATFORM golang:1.13 as builder
 ENV CGO_ENABLED=0
 ENV GOPATH=/go
-ENV GOPROXY=https://goproxy.cn
+ENV GOPROXY=https://goproxy.io
 
 WORKDIR /app
 COPY . .
 
 ARG LDFLAGS
-RUN GOOS=linux GO111MODULE=on go build -ldflags "$LDFLAGS" -o /cloud-adaptor ./cmd/cloud-adaptor
+ARG TARGETOS TARGETARCH
+RUN GO111MODULE=on GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "$LDFLAGS" -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM --platform=$BUILDPLATFORM wutongpaas/alpine:3.15
-ARG BUILDPLATFORM
+ARG TARGETPLATFORM
 WORKDIR /app
 RUN apk add --update apache2-utils && \
     rm -rf /var/cache/apk/* && \
     mkdir /app/data && \
-    if [ "${BUILDPLATFORM}" = "linux/arm64" ]; then \
+    if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
       wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm-arm64 && chmod +x helm-arm64 && mv helm-arm64 /usr/local/bin/helm; \
     else \
       wget https://wutong-paas-public.obs.cn-east-3.myhuaweicloud.com/offline/helm && chmod +x helm && mv helm /usr/local/bin/helm; \
