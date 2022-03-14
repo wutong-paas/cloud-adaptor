@@ -34,4 +34,6 @@ COPY --from=builder /cloud-adaptor .
 
 VOLUME /app/data
 
+EXPOSE 8080/tcp
+
 ENTRYPOINT ["./cloud-adaptor"]
