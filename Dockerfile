@@ -10,7 +10,7 @@ RUN go mod download
 
 # Build
 ARG TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
+RUN CGO_ENABLED=1 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM --platform=$BUILDPLATFORM wutongpaas/alpine:3.15
 ARG TARGETOS TARGETARCH TARGETPLATFORM
