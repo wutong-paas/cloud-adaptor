@@ -1,17 +1,19 @@
-FROM --platform=$BUILDPLATFORM golang:1.13 as builder
-ENV CGO_ENABLED=0
-ENV GOPATH=/go
-ENV GOPROXY=https://goproxy.io
-
-WORKDIR /app
+# Build the manager binary
+FROM --platform=$BUILDPLATFORM golang:1.15 as builder
+WORKDIR /workspace
+# Copy the Go Modules manifests
 COPY . .
+ENV GOPROXY=https://goproxy.cn
+# cache deps before building and copying source so that we don't need to re-download as much
+# and so that source changes don't invalidate our downloaded layer
+RUN go mod download
 
-ARG LDFLAGS
+# Build
 ARG TARGETOS TARGETARCH
-RUN GO111MODULE=on GOOS=$TARGETOS GOARCH=$TARGETARCH go build -ldflags "$LDFLAGS" -o /cloud-adaptor ./cmd/cloud-adaptor
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM --platform=$BUILDPLATFORM wutongpaas/alpine:3.15
-ARG TARGETPLATFORM
+ARG TARGETOS TARGETARCH TARGETPLATFORM
 WORKDIR /app
 RUN apk add --update apache2-utils && \
     rm -rf /var/cache/apk/* && \
