@@ -131,7 +131,7 @@ func (o *Operator) Install(cluster *wutongv1alpha1.WutongCluster) error {
 		return fmt.Errorf("create wutong volume failure %s", err.Error())
 	}
 	if err := o.createWutongPackage(); err != nil {
-		return fmt.Errorf("create wutong volume failure %s", err.Error())
+		return fmt.Errorf("create wutong package failure %s", err.Error())
 	}
 	if err := o.createComponents(cluster); err != nil {
 		return err

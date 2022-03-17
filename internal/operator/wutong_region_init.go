@@ -120,6 +120,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 			Stderr: stdout,
 		}
 		if err := cmd.Run(); err != nil {
+			fmt.Println("helm run err:", err.Error())
 			errout := stdout.String()
 			if !strings.Contains(errout, "cannot re-use a name that is still in use") {
 				if strings.Contains(errout, `ClusterRoleBinding "wutong-operator" in namespace`) {
@@ -133,6 +134,8 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 				return fmt.Errorf("install chart failure %s, %s", err.Error(), errout)
 			}
 			logrus.Warning("wutong operator chart release is exist")
+		} else {
+			fmt.Println("helm run well.")
 		}
 		break
 	}
