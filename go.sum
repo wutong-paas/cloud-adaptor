@@ -1562,9 +1562,13 @@ github.com/wutong-paas/wutong v1.0.0-beta h1:Nd2/FkErBuvmclamJRiT6kQc4PFQvyMN7e/
 github.com/wutong-paas/wutong v1.0.0-beta/go.mod h1:nhbOcjnPaekt19Jg+lBx9F3vxqCt1rsyDNu/JsdxNh8=
 github.com/wutong-paas/wutong v1.0.0 h1:QWmDBztSfDYsZItiQJxXnmmp0rEIwHpace/MY52ZyS4=
 github.com/wutong-paas/wutong v1.0.0/go.mod h1:nhbOcjnPaekt19Jg+lBx9F3vxqCt1rsyDNu/JsdxNh8=
+github.com/wutong-paas/wutong v1.0.1 h1:ur7Q3wQf0HoPBgTcz3vu778VB4YZBISUwETJytY90Lo=
+github.com/wutong-paas/wutong v1.0.1/go.mod h1:L5bNOQiBAXaPBKuPJD6vSY4SUGvpwYsQbALRG8wZAUc=
 github.com/wutong-paas/wutong-oam v1.0.1/go.mod h1:F3tyQ3zanE63/Beyz31wp9LUvtj5RGZXL8AwvUVrD3E=
 github.com/wutong-paas/wutong-operator v1.0.0 h1:PrRTq9koipviQ7nlYXz3Asmcg7zPzuUvDvFlRZmK6IE=
 github.com/wutong-paas/wutong-operator v1.0.0/go.mod h1:5778z6HUgaPIdQ/33rq7dEUcLpgYk/jUTQDqJRz++X0=
+github.com/wutong-paas/wutong-operator v1.0.1 h1:BnnI+vJY9rUxm0rzJL5rKNjSqIude9HmBv2BZD0QUxI=
+github.com/wutong-paas/wutong-operator v1.0.1/go.mod h1:5778z6HUgaPIdQ/33rq7dEUcLpgYk/jUTQDqJRz++X0=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
 github.com/xdg/stringprep v0.0.0-20180714160509-73f8eece6fdc/go.mod h1:Jhud4/sHMO4oL310DaZAKk9ZaJ08SJfe+sJh0HrGL1Y=

@@ -31,8 +31,8 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible
 	github.com/ugorji/go v1.2.5 // indirect
 	github.com/urfave/cli/v2 v2.3.0
-	github.com/wutong-paas/wutong v1.0.0
-	github.com/wutong-paas/wutong-operator v1.0.0
+	github.com/wutong-paas/wutong v1.0.1
+	github.com/wutong-paas/wutong-operator v1.0.1
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	golang.org/x/mod v0.4.2 // indirect
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
