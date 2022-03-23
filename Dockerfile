@@ -1,5 +1,5 @@
 # Build the manager binary
-FROM --platform=$BUILDPLATFORM golang:1.15 as builder
+FROM --platform=$TARGETPLATFORM golang:1.15 as builder
 WORKDIR /workspace
 # Copy the Go Modules manifests
 COPY . .
@@ -12,7 +12,7 @@ RUN go mod download
 ARG TARGETOS TARGETARCH
 RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
 
-FROM --platform=$BUILDPLATFORM wutongpaas/alpine:3.15
+FROM --platform=$TARGETPLATFORM wutongpaas/alpine:3.15
 ARG TARGETOS TARGETARCH TARGETPLATFORM
 WORKDIR /app
 RUN apk add --update apache2-utils && \
