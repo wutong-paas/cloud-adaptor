@@ -200,7 +200,7 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 		for _, con := range status.WutongPackage.Status.Conditions {
 			if con.Type == wutongv1alpha1.Ready && con.Status == wutongv1alpha1.Completed && !packageMessage {
 				c.rollback("InitWutongRegionPackage", "", "success")
-				c.rollback("InitWutongRegionRegionConfig", "", "start")
+				c.rollback("InitWutongRegionConfig", "", "start")
 				packageMessage = true
 			}
 			continue

@@ -475,6 +475,13 @@ func (r *WutongRegionInit) UninstallRegion(clusterID string) error {
 		return fmt.Errorf("delete persistent volume claims: %v", err)
 	}
 
+	// delete pv
+	if err := coreClient.CoreV1().PersistentVolumes().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{
+		LabelSelector: "belongTo=wutong-operator",
+	}); err != nil {
+		return fmt.Errorf("delete persistent volume claims: %v", err)
+	}
+
 	// delete storage class and csidriver
 	wutongLabelSelector := fields.SelectorFromSet(wtutil.LabelsForWutong(nil)).String()
 	if err := coreClient.StorageV1().StorageClasses().DeleteCollection(ctx, deleteOpts, metav1.ListOptions{LabelSelector: wutongLabelSelector}); err != nil {
