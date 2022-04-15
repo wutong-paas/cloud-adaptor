@@ -9,6 +9,7 @@ ENV GOPROXY=https://goproxy.cn
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
+# Copy the go source
 COPY api/ api/
 COPY cmd/ cmd/
 COPY docs/ docs/
@@ -18,8 +19,8 @@ COPY version/ version/
 COPY tools.go tools.go
 
 # Build
-ARG TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
+ARG TARGETOS TARGETARCH TARGETPLATFORM
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -a -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM --platform=$TARGETPLATFORM wutongpaas/alpine:3.15
 ARG TARGETOS TARGETARCH TARGETPLATFORM
