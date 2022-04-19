@@ -227,15 +227,6 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 		name2Claim["wt-etcd"] = claim
 	}
 
-	// kubernetes dashboard
-	k8sdashboard := newClaim("kubernetes-dashboard")
-	k8sdashboard.version = "v2.0.1-3"
-	name2Claim["kubernetes-dashboard"] = k8sdashboard
-	dashboardscraper := newClaim("dashboard-metrics-scraper")
-	dashboardscraper.imageName = "metrics-scraper"
-	dashboardscraper.version = "v1.0.4"
-	name2Claim["dashboard-metrics-scraper"] = dashboardscraper
-
 	if rwx := cluster.Spec.WutongVolumeSpecRWX; rwx != nil && rwx.CSIPlugin != nil {
 		if rwx.CSIPlugin.NFS != nil {
 			name2Claim["nfs-provisioner"] = newClaim("nfs-provisioner")

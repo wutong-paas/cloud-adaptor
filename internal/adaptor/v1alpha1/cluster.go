@@ -134,7 +134,6 @@ func (t *Time) UnmarshalJSON(in []byte) error {
 //MasterURL master url struct
 type MasterURL struct {
 	APIServerEndpoint         string `json:"api_server_endpoint,omitempty"`
-	DashboardEndpoint         string `json:"dashboard_endpoint,omitempty"`
 	MiranaEndpoint            string `json:"mirana_endpoint,omitempty"`
 	ReverseTunnelEndpoint     string `json:"reverse_tunnel_endpoint,omitempty"`
 	IntranetAPIServerEndpoint string `json:"intranet_api_server_endpoint,omitempty"`
@@ -145,9 +144,6 @@ func (t *MasterURL) MarshalJSON() ([]byte, error) {
 	var info = make(map[string]interface{})
 	if t.APIServerEndpoint != "" {
 		info["api_server_endpoint"] = t.APIServerEndpoint
-	}
-	if t.DashboardEndpoint != "" {
-		info["dashboard_endpoint"] = t.DashboardEndpoint
 	}
 	if t.IntranetAPIServerEndpoint != "" {
 		info["intranet_api_server_endpoint"] = t.IntranetAPIServerEndpoint
@@ -175,9 +171,6 @@ func (t *MasterURL) UnmarshalJSON(in []byte) error {
 	}
 	if info["api_server_endpoint"] != nil {
 		t.APIServerEndpoint = info["api_server_endpoint"].(string)
-	}
-	if info["dashboard_endpoint"] != nil {
-		t.DashboardEndpoint = info["dashboard_endpoint"].(string)
 	}
 	if info["intranet_api_server_endpoint"] != nil {
 		t.IntranetAPIServerEndpoint = info["intranet_api_server_endpoint"].(string)
