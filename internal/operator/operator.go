@@ -85,7 +85,7 @@ func parseComponentClaim(claim *componentClaim) *v1alpha1.WutongComponent {
 	component.Namespace = claim.namespace
 	component.Name = claim.name
 	component.Spec.Image = claim.image()
-	component.Spec.ImagePullPolicy = corev1.PullIfNotPresent
+	component.Spec.ImagePullPolicy = corev1.PullAlways
 	component.Spec.Replicas = claim.replicas
 	labels := wtutil.LabelsForWutong(map[string]string{"name": claim.name})
 	if claim.isInit {
