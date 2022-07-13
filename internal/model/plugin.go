@@ -17,6 +17,7 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 package model
 
+// Plugin -
 type Plugin struct {
 	Model
 	PluginAlias string `gorm:"column:plugin_alias size:255"`
@@ -26,6 +27,7 @@ type Plugin struct {
 	Command     string `gorm:"column:command type:longtext"`
 }
 
+// PluginConfigGroup -
 type PluginConfigGroup struct {
 	Model
 	PluginID        uint            `gorm:"column:plugin_id"`
@@ -34,6 +36,7 @@ type PluginConfigGroup struct {
 	Injection       InjectionType   `gorm:"column:injection size:255"`
 }
 
+// PluginConfigItem -
 type PluginConfigItem struct {
 	Model
 	PluginConfigGroupID uint     `gorm:"column:plugin_config_group_id"`
