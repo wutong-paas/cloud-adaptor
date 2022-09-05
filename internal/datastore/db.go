@@ -117,10 +117,6 @@ func AutoMigrate(db *gorm.DB) error {
 		"WutongClusterConfig":  model.WutongClusterConfig{},
 		"AppStore":             model.AppStore{},
 		"TaskEvent":            model.TaskEvent{},
-
-		"Plugin":            model.Plugin{},
-		"PluginConfigGroup": model.PluginConfigGroup{},
-		"PluginConfigItem":  model.PluginConfigItem{},
 	}
 
 	for name, mod := range models {
