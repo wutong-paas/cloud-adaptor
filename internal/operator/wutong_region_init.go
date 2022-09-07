@@ -63,15 +63,44 @@ type WutongRegionInit struct {
 	kubeconfig              v1alpha1.KubeConfig
 	namespace               string
 	wutongClusterConfigRepo repo.WutongClusterConfigRepository
+	wutongCluster           *wutongv1alpha1.WutongCluster
 }
 
 // NewWutongRegionInit new
-func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo repo.WutongClusterConfigRepository) *WutongRegionInit {
-	return &WutongRegionInit{
+func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo repo.WutongClusterConfigRepository, initConfig *v1alpha1.WutongInitConfig) *WutongRegionInit {
+	res := &WutongRegionInit{
 		kubeconfig:              kubeconfig,
 		namespace:               constants.Namespace,
 		wutongClusterConfigRepo: wutongClusterConfigRepo,
 	}
+
+	if initConfig != nil {
+		rcc, err := wutongClusterConfigRepo.Get(initConfig.ClusterID)
+		if err != nil && err != gorm.ErrRecordNotFound {
+			logrus.Errorf("get wutong cluster config failure %s", err.Error())
+		}
+		cluster := &wutongv1alpha1.WutongCluster{
+			Spec: wutongv1alpha1.WutongClusterSpec{
+				InstallVersion:        initConfig.WutongVersion,
+				CIVersion:             initConfig.WutongCIVersion,
+				EnableHA:              initConfig.EnableHA,
+				WutongImageRepository: version.InstallImageRepo,
+				SuffixHTTPHost:        initConfig.SuffixHTTPHost,
+				NodesForChaos:         initConfig.ChaosNodes,
+				NodesForGateway:       initConfig.GatewayNodes,
+				GatewayIngressIPs:     initConfig.EIPs,
+			},
+		}
+		if rcc != nil {
+			logrus.Info("use custom wutongcluster config")
+			if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
+				logrus.Errorf("Unmarshal wutong config failure %s", err.Error())
+			}
+		}
+		res.wutongCluster = cluster
+	}
+
+	return res
 }
 
 // InitWutongRegion init wutong region
@@ -108,7 +137,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 		helmPath, "install", "wutong-operator", "wutong/wutong-operator", "-n", r.namespace,
 		"--kubeconfig", kubeconfigFileName,
 		"--set", "operator.image.name=" + fmt.Sprintf("%s/wutong-operator", version.InstallImageRepo),
-		"--set", "operator.image.tag=" + version.OperatorVersion}
+		"--set", "operator.image.tag=" + imageFitArch(version.OperatorVersion, r.wutongCluster.Spec.Arch)}
 	logrus.Infof(strings.Join(defaultArgs, " "))
 	for {
 		var stdout = bytes.NewBuffer(nil)
@@ -173,27 +202,9 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 func (r *WutongRegionInit) createWutongCR(kubeClient *kubernetes.Clientset, client client.Client, initConfig *v1alpha1.WutongInitConfig) error {
 	// create wutong cluster resource
 	//TODO: define etcd config by WutongInitConfig
-	rcc, err := r.wutongClusterConfigRepo.Get(initConfig.ClusterID)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		logrus.Errorf("get wutong cluster config failure %s", err.Error())
-	}
-	cluster := &wutongv1alpha1.WutongCluster{
-		Spec: wutongv1alpha1.WutongClusterSpec{
-			InstallVersion:        initConfig.WutongVersion,
-			CIVersion:             initConfig.WutongCIVersion,
-			EnableHA:              initConfig.EnableHA,
-			WutongImageRepository: version.InstallImageRepo,
-			SuffixHTTPHost:        initConfig.SuffixHTTPHost,
-			NodesForChaos:         initConfig.ChaosNodes,
-			NodesForGateway:       initConfig.GatewayNodes,
-			GatewayIngressIPs:     initConfig.EIPs,
-		},
-	}
-	if rcc != nil {
-		logrus.Info("use custom wutongcluster config")
-		if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
-			logrus.Errorf("Unmarshal wutong config failure %s", err.Error())
-		}
+	cluster := r.wutongCluster
+	if cluster == nil {
+		return fmt.Errorf("wutong cluster not initialized")
 	}
 
 	if len(cluster.Spec.GatewayIngressIPs) == 0 {

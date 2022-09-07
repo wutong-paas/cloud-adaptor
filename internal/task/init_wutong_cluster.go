@@ -44,7 +44,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//InitWutongCluster init wutong cluster
+// InitWutongCluster init wutong cluster
 type InitWutongCluster struct {
 	config *types.InitWutongConfig
 	result chan apiv1.Message
@@ -57,7 +57,7 @@ func (c *InitWutongCluster) rollback(step, message, status string) {
 	c.result <- apiv1.Message{StepType: step, Message: message, Status: status}
 }
 
-//Run run take time 214.10s
+// Run run take time 214.10s
 func (c *InitWutongCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
@@ -143,7 +143,7 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 		return
 	}
 
-	rri := operator.NewWutongRegionInit(*kubeConfig, repo.NewWutongClusterConfigRepo(datastore.GetGDB()))
+	rri := operator.NewWutongRegionInit(*kubeConfig, repo.NewWutongClusterConfigRepo(datastore.GetGDB()), initConfig)
 	if err := rri.InitWutongRegion(initConfig); err != nil {
 		c.rollback("InitWutongRegionOperator", err.Error(), "failure")
 		return
@@ -215,7 +215,7 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 	c.rollback("InitWutongRegion", cluster.ClusterID, "success")
 }
 
-//GetWutongGatewayNodeAndChaosNodes get gateway nodes
+// GetWutongGatewayNodeAndChaosNodes get gateway nodes
 func (c *InitWutongCluster) GetWutongGatewayNodeAndChaosNodes(nodes []v1.Node) (gatewayNodes, chaosNodes []*wutongv1alpha1.K8sNode) {
 	for _, node := range nodes {
 		if node.Annotations["wutong.io/gateway-node"] == "true" {
@@ -257,7 +257,7 @@ func (c *InitWutongCluster) Stop() error {
 	return nil
 }
 
-//GetChan get message chan
+// GetChan get message chan
 func (c *InitWutongCluster) GetChan() chan apiv1.Message {
 	return c.result
 }
@@ -282,7 +282,7 @@ func getK8sNode(node v1.Node) *wutongv1alpha1.K8sNode {
 	return &Knode
 }
 
-//cloudInitTaskHandler cloud init task handler
+// cloudInitTaskHandler cloud init task handler
 type cloudInitTaskHandler struct {
 	eventHandler *CallBackEvent
 	handledTask  map[string]string
