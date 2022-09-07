@@ -37,12 +37,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-//Operator operator
+// Operator operator
 type Operator struct {
 	Config
 }
 
-//Config operator config
+const (
+	RegionArchAmd64 = "amd64" // default
+	RegionArchArm64 = "arm64"
+)
+
+// Config operator config
 type Config struct {
 	WutongVersion         string
 	Namespace             string
@@ -53,9 +58,10 @@ type Config struct {
 	ImageHubUser          string
 	ImageHubPass          string
 	OnlyInstallRegion     bool
+	// RegionArch            string
 }
 
-//NewOperator new operator
+// NewOperator new operator
 func NewOperator(c Config) (*Operator, error) {
 	if c.RuntimeClient == nil {
 		return nil, fmt.Errorf("config runtime client can not be nil")
@@ -72,6 +78,7 @@ type componentClaim struct {
 	imageRepository string
 	imageName       string
 	Configs         map[string]string
+	envs            map[string]string
 	isInit          bool
 	replicas        *int32
 }
@@ -96,7 +103,7 @@ func parseComponentClaim(claim *componentClaim) *v1alpha1.WutongComponent {
 	return component
 }
 
-//Install install
+// Install install
 func (o *Operator) Install(cluster *wutongv1alpha1.WutongCluster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
 	defer cancel()
@@ -177,7 +184,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 
 	newClaim := func(name string) *componentClaim {
 		defClaim := componentClaim{name: name, imageRepository: imageRepository, version: o.WutongVersion, replicas: defReplicas}
-		defClaim.imageName = name
+		defClaim.imageName = imageFitArch(name, cluster.Spec.Arch)
 		return &defClaim
 	}
 	name2Claim := map[string]*componentClaim{
@@ -190,15 +197,19 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 		"wt-webcli":         newClaim("wt-webcli"),
 		"wt-resource-proxy": newClaim("wt-resource-proxy"),
 	}
-	if !o.OnlyInstallRegion {
-		name2Claim["wt-app-ui"] = newClaim("wt-app-ui")
+	name2Claim["wt-chaos"].envs = map[string]string{
+		"CI_VERSION": cluster.Spec.InstallVersion,
+	}
+	name2Claim["wt-worker"].envs = map[string]string{
+		"CI_VERSION": cluster.Spec.InstallVersion,
 	}
 	name2Claim["metrics-server"] = newClaim("metrics-server")
 	name2Claim["metrics-server"].version = "v0.6.1"
 
 	if cluster.Spec.RegionDatabase == nil || (cluster.Spec.UIDatabase == nil && !o.OnlyInstallRegion) {
 		claim := newClaim("wt-db")
-		claim.version = "8.0.19"
+		claim.imageName = "mysql"
+		claim.version = "8.0"
 		claim.replicas = commonutil.Int32(1)
 		name2Claim["wt-db"] = claim
 	}
@@ -219,7 +230,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 	if cluster.Spec.EtcdConfig == nil || len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
 		claim := newClaim("wt-etcd")
 		claim.imageName = "etcd"
-		claim.version = "v3.3.18"
+		claim.version = imageFitArch("v3.3.18", cluster.Spec.Arch)
 		claim.isInit = isInit
 		if cluster.Spec.EnableHA {
 			claim.replicas = commonutil.Int32(3)
@@ -230,6 +241,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 	if rwx := cluster.Spec.WutongVolumeSpecRWX; rwx != nil && rwx.CSIPlugin != nil {
 		if rwx.CSIPlugin.NFS != nil {
 			name2Claim["nfs-provisioner"] = newClaim("nfs-provisioner")
+			name2Claim["nfs-provisioner"].version = imageFitArch("v3.0.0", cluster.Spec.Arch)
 			name2Claim["nfs-provisioner"].replicas = commonutil.Int32(1)
 			name2Claim["nfs-provisioner"].isInit = isInit
 		}
@@ -310,4 +322,11 @@ func setWutongVolume(name, namespace string, labels map[string]string, spec *v1a
 		Spec: *spec,
 	}
 	return volume
+}
+
+func imageFitArch(image string, arch string) string {
+	if arch == "" || arch == RegionArchAmd64 {
+		return image
+	}
+	return fmt.Sprintf("%s-%s", image, arch)
 }

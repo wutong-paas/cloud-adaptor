@@ -58,14 +58,14 @@ func init() {
 	}
 }
 
-//WutongRegionInit wutong region init by operator
+// WutongRegionInit wutong region init by operator
 type WutongRegionInit struct {
 	kubeconfig              v1alpha1.KubeConfig
 	namespace               string
 	wutongClusterConfigRepo repo.WutongClusterConfigRepository
 }
 
-//NewWutongRegionInit new
+// NewWutongRegionInit new
 func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo repo.WutongClusterConfigRepository) *WutongRegionInit {
 	return &WutongRegionInit{
 		kubeconfig:              kubeconfig,
@@ -74,7 +74,7 @@ func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo
 	}
 }
 
-//InitWutongRegion init wutong region
+// InitWutongRegion init wutong region
 func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfig) error {
 	clusterID := initConfig.ClusterID
 	kubeconfigFileName := "/tmp/" + clusterID + ".kubeconfig"
@@ -195,6 +195,7 @@ func (r *WutongRegionInit) createWutongCR(kubeClient *kubernetes.Clientset, clie
 			logrus.Errorf("Unmarshal wutong config failure %s", err.Error())
 		}
 	}
+
 	if len(cluster.Spec.GatewayIngressIPs) == 0 {
 		return fmt.Errorf("can not select eip, please specify `gatewayIngressIPs` in the custom cluster init configuration")
 	}
@@ -366,7 +367,7 @@ func generateSuffixConfigMap(name, namespace string) *v1.ConfigMap {
 	return cm
 }
 
-//GetWutongRegionStatus get wutong region status
+// GetWutongRegionStatus get wutong region status
 func (r *WutongRegionInit) GetWutongRegionStatus(clusterID string) (*v1alpha1.WutongRegionStatus, error) {
 	coreClient, wutongClient, err := r.kubeconfig.GetKubeClient()
 	if err != nil {
@@ -428,7 +429,7 @@ func (r *WutongRegionInit) GetWutongRegionStatus(clusterID string) (*v1alpha1.Wu
 	return status, nil
 }
 
-//UninstallRegion uninstall
+// UninstallRegion uninstall
 func (r *WutongRegionInit) UninstallRegion(clusterID string) error {
 	deleteOpts := metav1.DeleteOptions{
 		GracePeriodSeconds: commonutil.Int64(0),
