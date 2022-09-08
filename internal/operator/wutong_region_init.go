@@ -219,6 +219,10 @@ func (r *WutongRegionInit) createWutongCR(kubeClient *kubernetes.Clientset, clie
 		cluster.Spec.CacheMode = "hostpath"
 	}
 
+	if cluster.Spec.Arch == "" {
+		cluster.Spec.Arch = RegionArchAmd64
+	}
+
 	cluster.Spec.ConfigCompleted = true
 	// image hub must be nil, where not define
 	if cluster.Spec.ImageHub != nil && cluster.Spec.ImageHub.Domain == "" {

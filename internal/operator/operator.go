@@ -94,6 +94,14 @@ func parseComponentClaim(claim *componentClaim) *v1alpha1.WutongComponent {
 	component.Spec.Image = claim.image()
 	component.Spec.ImagePullPolicy = corev1.PullAlways
 	component.Spec.Replicas = claim.replicas
+	if claim.envs != nil {
+		for k, v := range claim.envs {
+			component.Spec.Env = append(component.Spec.Env, corev1.EnvVar{
+				Name:  k,
+				Value: v,
+			})
+		}
+	}
 	labels := wtutil.LabelsForWutong(map[string]string{"name": claim.name})
 	if claim.isInit {
 		component.Spec.PriorityComponent = true
@@ -183,8 +191,8 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 	}
 
 	newClaim := func(name string) *componentClaim {
-		defClaim := componentClaim{name: name, imageRepository: imageRepository, version: o.WutongVersion, replicas: defReplicas}
-		defClaim.imageName = imageFitArch(name, cluster.Spec.Arch)
+		defClaim := componentClaim{name: name, imageRepository: imageRepository, version: cluster.Spec.InstallVersion, replicas: defReplicas}
+		defClaim.imageName = name
 		return &defClaim
 	}
 	name2Claim := map[string]*componentClaim{
