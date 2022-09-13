@@ -249,7 +249,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.WutongCluster) map[strin
 	if rwx := cluster.Spec.WutongVolumeSpecRWX; rwx != nil && rwx.CSIPlugin != nil {
 		if rwx.CSIPlugin.NFS != nil {
 			name2Claim["nfs-provisioner"] = newClaim("nfs-provisioner")
-			name2Claim["nfs-provisioner"].version = imageFitArch("v3.0.0", cluster.Spec.Arch)
+			name2Claim["nfs-provisioner"].version = "v3.0.0"
 			name2Claim["nfs-provisioner"].replicas = commonutil.Int32(1)
 			name2Claim["nfs-provisioner"].isInit = isInit
 		}
