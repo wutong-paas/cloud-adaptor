@@ -70,7 +70,7 @@ type WutongRegionInit struct {
 func NewWutongRegionInit(kubeconfig v1alpha1.KubeConfig, wutongClusterConfigRepo repo.WutongClusterConfigRepository, initConfig *v1alpha1.WutongInitConfig) *WutongRegionInit {
 	res := &WutongRegionInit{
 		kubeconfig:              kubeconfig,
-		namespace:               constants.Namespace,
+		namespace:               constants.WutongSystemNamespace,
 		wutongClusterConfigRepo: wutongClusterConfigRepo,
 	}
 

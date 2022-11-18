@@ -27,6 +27,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
+	"github.com/wutong-paas/cloud-adaptor/internal/domain"
 	"github.com/wutong-paas/cloud-adaptor/internal/repo/appstore"
 )
 
@@ -65,7 +66,7 @@ func TestGetTemplateVersion(t *testing.T) {
 
 	for _, tc := range tests {
 		tc := tc
-		version, err := templateVersionRepo.GetTemplateVersion("wutong", "https://charts.github.com/wutong-paas/wutong-chart", "mariadb", tc.version)
+		version, err := templateVersionRepo.GetTemplateVersion(&domain.AppStore{Name: "wutong", URL: "https://charts.github.com/wutong-paas/wutong-chart"}, "mariadb", tc.version)
 		if !assert.Equal(t, tc.err, errors.Cause(err)) {
 			t.FailNow()
 		}
