@@ -132,6 +132,19 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 		return err
 	}
 
+	// helm repo update
+	repoUpdateCmd := exec.Cmd{
+		Path:   helmPath,
+		Args:   []string{helmPath, "repo", "update", "wutong"},
+		Stdout: os.Stdout,
+		Stdin:  os.Stdin,
+		Stderr: os.Stderr,
+	}
+
+	if err := repoUpdateCmd.Run(); err != nil {
+		logrus.Warning("update wutong helm repository failed: %s", err.Error())
+	}
+
 	// helm create wutong operator chart
 	defaultArgs := []string{
 		helmPath, "install", "wutong-operator", "wutong/wutong-operator", "-n", r.namespace,
