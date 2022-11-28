@@ -33,7 +33,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-//GenerateKey -
+// GenerateKey -
 func GenerateKey(bits int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	private, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
@@ -43,7 +43,7 @@ func GenerateKey(bits int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 
 }
 
-//EncodePrivateKey -
+// EncodePrivateKey -
 func EncodePrivateKey(private *rsa.PrivateKey) []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Bytes: x509.MarshalPKCS1PrivateKey(private),
@@ -51,7 +51,7 @@ func EncodePrivateKey(private *rsa.PrivateKey) []byte {
 	})
 }
 
-//EncodePublicKey -
+// EncodePublicKey -
 func EncodePublicKey(public *rsa.PublicKey) ([]byte, error) {
 	publicBytes, err := x509.MarshalPKIXPublicKey(public)
 	if err != nil {
@@ -63,7 +63,7 @@ func EncodePublicKey(public *rsa.PublicKey) ([]byte, error) {
 	}), nil
 }
 
-//EncodeSSHKey -
+// EncodeSSHKey -
 func EncodeSSHKey(public *rsa.PublicKey) ([]byte, error) {
 	publicKey, err := ssh.NewPublicKey(public)
 	if err != nil {
@@ -72,7 +72,7 @@ func EncodeSSHKey(public *rsa.PublicKey) ([]byte, error) {
 	return ssh.MarshalAuthorizedKey(publicKey), nil
 }
 
-//MakeSSHKeyPair -
+// MakeSSHKeyPair -
 func MakeSSHKeyPair() (string, string, error) {
 
 	pkey, pubkey, err := GenerateKey(2048)
@@ -88,11 +88,11 @@ func MakeSSHKeyPair() (string, string, error) {
 	return string(EncodePrivateKey(pkey)), string(pub), nil
 }
 
-//GetOrMakeSSHRSA get or make ssh rsa
+// GetOrMakeSSHRSA get or make ssh rsa
 func GetOrMakeSSHRSA() (string, error) {
 	home := homedir.HomeDir()
 	if _, err := os.Stat(path.Join(home, ".ssh")); err != nil && os.IsNotExist(err) {
-		os.MkdirAll(path.Join(home, ".ssh"), 0700)
+		_ = os.MkdirAll(path.Join(home, ".ssh"), 0700)
 	}
 	idRsaPath := path.Join(home, ".ssh", "id_rsa")
 	idRsaPubPath := path.Join(home, ".ssh", "id_rsa.pub")

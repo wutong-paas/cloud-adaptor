@@ -53,7 +53,7 @@ func (a *ackAdaptor) GetNasZone(regionID string) (string, error) {
 	return "", fmt.Errorf("not found support Capacity nas zone")
 }
 
-//CreateNAS create nas, if zone is not found, will retry other zone
+// CreateNAS create nas, if zone is not found, will retry other zone
 func (a *ackAdaptor) CreateNAS(clusterID, regionID, zoneID string) (string, error) {
 	logrus.Infof("create nas in region %s zone %s", regionID, zoneID)
 	client, err := nas.NewClientWithAccessKey(regionID, a.accessKeyID, a.accessKeySecret)
@@ -196,7 +196,7 @@ func (a *ackAdaptor) CreateNASMountTarget(clusterID, regionID, fileSystemID, Vpc
 }
 
 func (a *ackAdaptor) GetNASInfo(regionID, fileSystemID string) (*v1alpha1.NasStorageInfo, error) {
-	client, err := nas.NewClientWithAccessKey(regionID, a.accessKeyID, a.accessKeySecret)
+	client, _ := nas.NewClientWithAccessKey(regionID, a.accessKeyID, a.accessKeySecret)
 	request := nas.CreateDescribeFileSystemsRequest()
 	request.RegionId = regionID
 	request.FileSystemId = fileSystemID

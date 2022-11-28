@@ -34,7 +34,7 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 )
 
-//CreateKubernetesCluster create cluster
+// CreateKubernetesCluster create cluster
 type CreateKubernetesCluster struct {
 	config *v1alpha1.KubernetesClusterConfig
 	result chan v1.Message
@@ -47,7 +47,7 @@ func (c *CreateKubernetesCluster) rollback(step, message, status string) {
 	c.result <- v1.Message{StepType: step, Message: message, Status: status}
 }
 
-//Run run
+// Run run
 func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
@@ -62,12 +62,12 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 	adaptor.CreateWutongKubernetes(ctx, c.config.EnterpriseID, c.config, c.rollback)
 }
 
-//GetChan get message chan
+// GetChan get message chan
 func (c *CreateKubernetesCluster) GetChan() chan v1.Message {
 	return c.result
 }
 
-//createKubernetesTaskHandler create kubernetes task handler
+// createKubernetesTaskHandler create kubernetes task handler
 type createKubernetesTaskHandler struct {
 	eventHandler *CallBackEvent
 }
@@ -87,7 +87,7 @@ func (h *createKubernetesTaskHandler) HandleMsg(ctx context.Context, createConfi
 	initTask, err := CreateTask(CreateKubernetesTask, createConfig.KubernetesConfig)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(createConfig.GetEvent(&v1.Message{
+		_ = h.eventHandler.HandleEvent(createConfig.GetEvent(&v1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",
@@ -130,7 +130,7 @@ func (h *createKubernetesTaskHandler) run(ctx context.Context, initTask Task, cr
 			if message.StepType == "Close" {
 				return
 			}
-			h.eventHandler.HandleEvent(createConfig.GetEvent(&message))
+			_ = h.eventHandler.HandleEvent(createConfig.GetEvent(&message))
 		}
 	}()
 	initTask.Run(ctx)

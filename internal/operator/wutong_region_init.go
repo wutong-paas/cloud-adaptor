@@ -142,7 +142,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 	}
 
 	if err := repoUpdateCmd.Run(); err != nil {
-		logrus.Warning("update wutong helm repository failed: %s", err.Error())
+		logrus.Warningf("update wutong helm repository failed: %s", err.Error())
 	}
 
 	// helm create wutong operator chart
@@ -169,7 +169,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 					func() {
 						ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 						defer cancel()
-						client.RbacV1().ClusterRoleBindings().Delete(ctx, "wutong-operator", metav1.DeleteOptions{})
+						_ = client.RbacV1().ClusterRoleBindings().Delete(ctx, "wutong-operator", metav1.DeleteOptions{})
 					}()
 					continue
 				}

@@ -64,11 +64,11 @@ func (c *taskChannelConsumer) Start() error {
 		case <-c.ctx.Done():
 			return nil
 		case createMsg := <-c.createQueue:
-			c.createKubernetesTaskHandler.HandleMsg(c.ctx, createMsg)
+			_ = c.createKubernetesTaskHandler.HandleMsg(c.ctx, createMsg)
 		case initMsg := <-c.initQueue:
-			c.cloudInitTaskHandler.HandleMsg(c.ctx, initMsg)
+			_ = c.cloudInitTaskHandler.HandleMsg(c.ctx, initMsg)
 		case updateMsg := <-c.updateQueue:
-			c.cloudUpdateTaskHandler.HandleMsg(c.ctx, updateMsg)
+			_ = c.cloudUpdateTaskHandler.HandleMsg(c.ctx, updateMsg)
 		}
 	}
 }

@@ -35,7 +35,7 @@ import (
 	"k8s.io/client-go/util/homedir"
 )
 
-//SystemHandler -
+// SystemHandler -
 type SystemHandler struct {
 	db *gorm.DB
 }
@@ -47,14 +47,14 @@ func NewSystemHandler(db *gorm.DB) *SystemHandler {
 	}
 }
 
-//Backup backup all data
+// Backup backup all data
 func (s SystemHandler) Backup(ctx *gin.Context) {
 	//backup dir
 	backupTmpPath := "/tmp/backup/"
 	defer func() {
 		os.RemoveAll(backupTmpPath)
 	}()
-	os.MkdirAll(backupTmpPath, 0755)
+	_ = os.MkdirAll(backupTmpPath, 0755)
 	//backup db data
 	var result model.BackupListModelData
 	s.db.Model(&model.CloudAccessKey{}).Scan(&result.CloudAccessKeys)
@@ -84,7 +84,7 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	rkeDir := path.Join(configDir, "rke")
 	_, err = os.Stat(rkeDir)
 	if err != nil {
-		os.MkdirAll(rkeDir, 0755)
+		_ = os.MkdirAll(rkeDir, 0755)
 	}
 	tarPackgeFile := path.Join(backupTmpPath, "rke.tar.gz")
 	cmd := exec.Command("tar", "-czf", tarPackgeFile, "./")
@@ -125,10 +125,12 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	ctx.Header("Content-Disposition", "attachment; filename=cloud_adaptor_data.tar.gz")
 	ctx.Header("Content-Type", "application/octet-stream")
 	ctx.Header("Content-Length", fmt.Sprintf("%d", len(filedata)))
-	ctx.Writer.Write(filedata)
+	if _, err = ctx.Writer.Write(filedata); err != nil {
+		logrus.Errorf("write to file failed %s", err.Error())
+	}
 }
 
-//Recover all data
+// Recover all data
 func (s SystemHandler) Recover(c *gin.Context) {
 	recoverPath := "/tmp/recover"
 	_, err := os.Stat(recoverPath)
@@ -144,7 +146,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 	defer func() {
 		os.RemoveAll(recoverPath)
 	}()
-	os.Mkdir(recoverPath, 0755)
+	_ = os.Mkdir(recoverPath, 0755)
 
 	dst := path.Join(recoverPath, f.Filename)
 	err = c.SaveUploadedFile(f, dst)
@@ -173,7 +175,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 			configDir = os.Getenv("CONFIG_DIR")
 		}
 		rkeDir := path.Join(configDir, "rke")
-		os.MkdirAll(rkeDir, 0755)
+		_ = os.MkdirAll(rkeDir, 0755)
 		if err := exec.Command("tar", "-xzf", rkePath, "-C", rkeDir).Run(); err != nil {
 			logrus.Errorf("recover rke data failure %s", err.Error())
 		}
@@ -190,7 +192,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 	if sshFile != nil {
 		logrus.Infof("start recover ssh backup data")
 		sshDir := path.Join(homedir.HomeDir(), ".ssh")
-		os.MkdirAll(sshDir, 0700)
+		_ = os.MkdirAll(sshDir, 0700)
 		if err := exec.Command("tar", "-xzf", sshPath, "-C", sshDir).Run(); err != nil {
 			logrus.Errorf("recover ssh data failure %s", err.Error())
 		}
@@ -199,7 +201,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 	// recover db data
 	bytes, err := ioutil.ReadFile(path.Join(recoverPath, "cloudadaptor-db.json"))
 	if err != nil {
-		logrus.Errorf("read db backup file failure ", err.Error())
+		logrus.Errorf("read db backup file failure %s", err.Error())
 	} else {
 		logrus.Infof("start recover db backup data")
 		func() {
@@ -213,7 +215,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				var data model.BackupListModelData
 				err = json.Unmarshal(bytes, &data)
 				if err != nil {
-					logrus.Errorf("unmarshal db backup file failure ", err.Error())
+					logrus.Errorf("unmarshal db backup file failure %s", err.Error())
 				}
 				if err := tx.Where("1 = 1").Delete(&model.CloudAccessKey{}).Error; err != nil {
 					return err

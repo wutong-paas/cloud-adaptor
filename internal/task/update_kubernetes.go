@@ -34,7 +34,7 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 )
 
-//UpdateKubernetesCluster update cluster
+// UpdateKubernetesCluster update cluster
 type UpdateKubernetesCluster struct {
 	config *v1alpha1.ExpansionNode
 	result chan v1.Message
@@ -47,7 +47,7 @@ func (c *UpdateKubernetesCluster) rollback(step, message, status string) {
 	c.result <- v1.Message{StepType: step, Message: message, Status: status}
 }
 
-//Run run
+// Run run
 func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
@@ -62,7 +62,7 @@ func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 	adaptor.ExpansionNode(ctx, c.config.EnterpriseID, c.config, c.rollback)
 }
 
-//GetChan get message chan
+// GetChan get message chan
 func (c *UpdateKubernetesCluster) GetChan() chan v1.Message {
 	return c.result
 }
@@ -89,7 +89,7 @@ func (h *cloudUpdateTaskHandler) HandleMsg(ctx context.Context, config types.Upd
 	initTask, err := CreateTask(UpdateKubernetesTask, config.Config)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(config.GetEvent(&v1.Message{
+		_ = h.eventHandler.HandleEvent(config.GetEvent(&v1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",
@@ -138,7 +138,7 @@ func (h *cloudUpdateTaskHandler) run(ctx context.Context, initTask Task, initCon
 			if message.StepType == "Close" {
 				return
 			}
-			h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
+			_ = h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
 		}
 	}()
 	initTask.Run(ctx)

@@ -135,14 +135,16 @@ func run(c *cli.Context) error {
 	}
 
 	logrus.Infof("start listen %s", c.String("listen"))
-	go engine.Run(c.String("listen"))
+	go func() {
+		if err := engine.Run(c.String("listen")); err != nil {
+			logrus.Errorf("run http server: %+v", err)
+		}
+	}()
 
-	term := make(chan os.Signal)
+	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
-	select {
-	case <-term:
-		logrus.Warn("Received SIGTERM, exiting gracefully...")
-	}
+	<-term
+	logrus.Warn("Received SIGTERM, exiting gracefully...")
 	logrus.Info("See you next time!")
 	return nil
 }
@@ -159,7 +161,9 @@ func newApp(ctx context.Context,
 	engine.Use(gin.Recovery())
 
 	msgConsumer := nsqc.NewTaskChannelConsumer(ctx, createQueue, initQueue, updateQueue, createHandler, initHandler, cloudUpdateTaskHandler)
-	go msgConsumer.Start()
+	go func() {
+		_ = msgConsumer.Start()
+	}()
 
 	return engine
 }

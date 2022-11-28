@@ -22,12 +22,10 @@ import (
 	"context"
 	"testing"
 
-	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util"
-	v1 "k8s.io/api/core/v1"
 )
 
 var testAccess = ""
@@ -68,7 +66,7 @@ func TestGetKubeConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config.Save("/tmp/c9b4516adec504a458bdf9a6891fc74fe.kubeconfig")
+	_ = config.Save("/tmp/c9b4516adec504a458bdf9a6891fc74fe.kubeconfig")
 	coreClient, _, err := config.GetKubeClient()
 	if err != nil {
 		t.Fatal(err)
@@ -205,21 +203,21 @@ func TestBoundLoadBalancerToCluster(t *testing.T) {
 	}
 }
 
-func getK8sNode(node v1.Node) *wutongv1alpha1.K8sNode {
-	var Knode wutongv1alpha1.K8sNode
-	for _, address := range node.Status.Addresses {
-		if address.Type == v1.NodeInternalIP {
-			Knode.InternalIP = address.Address
-		}
-		if address.Type == v1.NodeExternalIP {
-			Knode.ExternalIP = address.Address
-		}
-		if address.Type == v1.NodeHostName {
-			Knode.Name = address.Address
-		}
-	}
-	return &Knode
-}
+// func getK8sNode(node v1.Node) *wutongv1alpha1.K8sNode {
+// 	var Knode wutongv1alpha1.K8sNode
+// 	for _, address := range node.Status.Addresses {
+// 		if address.Type == v1.NodeInternalIP {
+// 			Knode.InternalIP = address.Address
+// 		}
+// 		if address.Type == v1.NodeExternalIP {
+// 			Knode.ExternalIP = address.Address
+// 		}
+// 		if address.Type == v1.NodeHostName {
+// 			Knode.Name = address.Address
+// 		}
+// 	}
+// 	return &Knode
+// }
 
 func TestSetSecurityGroup(t *testing.T) {
 	a, err := Create(testAccess, testSecret)

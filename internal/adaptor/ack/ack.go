@@ -50,7 +50,7 @@ type ackAdaptor struct {
 	client          *sdk.Client
 }
 
-//Create create ack adaptor
+// Create create ack adaptor
 func Create(accessKeyID, accessKeySecret string) (adaptor.CloudAdaptor, error) {
 	client, err := sdk.NewClientWithAccessKey("", accessKeyID, accessKeySecret)
 	if err != nil {
@@ -210,12 +210,12 @@ func (a *ackAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 			cluster.Parameters = make(map[string]interface{})
 			kube, _ := a.GetKubeConfig(eid, cluster.ClusterID)
 			if kube != nil {
-				coreclient, _, err := kube.GetKubeClient()
+				coreclient, _, _ := kube.GetKubeClient()
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 				defer cancel()
 				versionByte, err := coreclient.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 				var info version.Info
-				json.Unmarshal(versionByte, &info)
+				_ = json.Unmarshal(versionByte, &info)
 				if err == nil {
 					cluster.CurrentVersion = info.String()
 					if !versionutil.CheckVersion(cluster.CurrentVersion) {
@@ -639,7 +639,7 @@ func (a *ackAdaptor) ListInstanceType(regionID string) ([]*v1alpha1.InstanceType
 	return list, nil
 }
 
-//GetECSIDByIPs get ecs id by vpcid and ips
+// GetECSIDByIPs get ecs id by vpcid and ips
 func (a *ackAdaptor) GetECSIDByIPs(regionID, vpcID string, ips []string) (map[string]string, error) {
 	client, err := ecs.NewClientWithAccessKey(regionID, a.accessKeyID, a.accessKeySecret)
 	if err != nil {
@@ -705,9 +705,9 @@ func (a *ackAdaptor) SetSecurityGroup(clusterID, regionID, securityGroupID strin
 			request.SecurityGroupId = securityGroupID
 			request.IpProtocol = "tcp"
 			request.SourceCidrIp = "0.0.0.0/0"
-			presponse, perr := client.AuthorizeSecurityGroup(request)
+			_, perr := client.AuthorizeSecurityGroup(request)
 			if perr != nil {
-				presponse, perr = client.AuthorizeSecurityGroup(request)
+				presponse, perr := client.AuthorizeSecurityGroup(request)
 				if perr != nil {
 					logrus.Errorf("create security rule %s failure %s", portRange, perr.Error())
 				}
@@ -720,7 +720,7 @@ func (a *ackAdaptor) SetSecurityGroup(clusterID, regionID, securityGroupID strin
 	return nil
 }
 
-//DescribeAvailableResourceZones get support InstanceType zones
+// DescribeAvailableResourceZones get support InstanceType zones
 func (a *ackAdaptor) DescribeAvailableResourceZones(regionID, InstanceType string) ([]*v1alpha1.AvailableResourceZone, error) {
 	client, err := ecs.NewClientWithAccessKey(regionID, a.accessKeyID, a.accessKeySecret)
 	if err != nil {
@@ -749,7 +749,7 @@ func (a *ackAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 	return list, nil
 }
 
-//GetWutongInitConfig get wutong init config
+// GetWutongInitConfig get wutong init config
 func (a *ackAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
 
 	rollback("CreateRDS", "", "start")
@@ -832,7 +832,7 @@ func (a *ackAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, 
 	}
 }
 
-//DeleteCluster delete cluster
+// DeleteCluster delete cluster
 func (a *ackAdaptor) DeleteCluster(eid string, clusterID string) error {
 	return nil
 }

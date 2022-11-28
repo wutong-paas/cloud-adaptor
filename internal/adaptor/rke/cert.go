@@ -20,7 +20,6 @@ package rke
 
 import (
 	"context"
-	"crypto/x509"
 	"fmt"
 	"time"
 
@@ -133,37 +132,37 @@ func saveClusterState(ctx context.Context, kubeCluster *cluster.Cluster, cluster
 	return nil
 }
 
-func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, flags cluster.ExternalFlags, rkeFullState *cluster.FullState) (*cluster.FullState, error) {
-	log.Infof(ctx, "Rotating Kubernetes cluster certificates")
-	currentCluster, err := kubeCluster.GetClusterState(ctx, rkeFullState)
-	if err != nil {
-		return nil, err
-	}
-	if currentCluster == nil {
-		return nil, fmt.Errorf("Failed to rotate certificates: can't find old certificates")
-	}
-	currentCluster.RotateCertificates = kubeCluster.RotateCertificates
-	if !kubeCluster.RotateCertificates.CACertificates {
-		caCertPKI, ok := rkeFullState.CurrentState.CertificatesBundle[pki.CACertName]
-		if !ok {
-			return nil, fmt.Errorf("Failed to rotate certificates: can't find CA certificate")
-		}
-		caCert := caCertPKI.Certificate
-		if caCert == nil {
-			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is nil")
-		}
-		certPool := x509.NewCertPool()
-		certPool.AddCert(caCert)
-		if _, err := caCert.Verify(x509.VerifyOptions{Roots: certPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}); err != nil {
-			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is invalid, please use the --rotate-ca flag to rotate CA certificate, error: %v", err)
-		}
-	}
-	if err := cluster.RotateRKECertificates(ctx, currentCluster, flags, rkeFullState); err != nil {
-		return nil, err
-	}
-	rkeFullState.DesiredState.RancherKubernetesEngineConfig = &kubeCluster.RancherKubernetesEngineConfig
-	return rkeFullState, nil
-}
+// func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, flags cluster.ExternalFlags, rkeFullState *cluster.FullState) (*cluster.FullState, error) {
+// 	log.Infof(ctx, "Rotating Kubernetes cluster certificates")
+// 	currentCluster, err := kubeCluster.GetClusterState(ctx, rkeFullState)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	if currentCluster == nil {
+// 		return nil, fmt.Errorf("Failed to rotate certificates: can't find old certificates")
+// 	}
+// 	currentCluster.RotateCertificates = kubeCluster.RotateCertificates
+// 	if !kubeCluster.RotateCertificates.CACertificates {
+// 		caCertPKI, ok := rkeFullState.CurrentState.CertificatesBundle[pki.CACertName]
+// 		if !ok {
+// 			return nil, fmt.Errorf("Failed to rotate certificates: can't find CA certificate")
+// 		}
+// 		caCert := caCertPKI.Certificate
+// 		if caCert == nil {
+// 			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is nil")
+// 		}
+// 		certPool := x509.NewCertPool()
+// 		certPool.AddCert(caCert)
+// 		if _, err := caCert.Verify(x509.VerifyOptions{Roots: certPool, KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}}); err != nil {
+// 			return nil, fmt.Errorf("Failed to rotate certificates: CA certificate is invalid, please use the --rotate-ca flag to rotate CA certificate, error: %v", err)
+// 		}
+// 	}
+// 	if err := cluster.RotateRKECertificates(ctx, currentCluster, flags, rkeFullState); err != nil {
+// 		return nil, err
+// 	}
+// 	rkeFullState.DesiredState.RancherKubernetesEngineConfig = &kubeCluster.RancherKubernetesEngineConfig
+// 	return rkeFullState, nil
+// }
 
 // GenerateRKECSRs -
 func GenerateRKECSRs(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, flags cluster.ExternalFlags) error {

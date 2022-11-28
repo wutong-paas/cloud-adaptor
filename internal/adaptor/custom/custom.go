@@ -43,7 +43,7 @@ type customAdaptor struct {
 	Repo *repo.CustomClusterRepo
 }
 
-//Create create ack adaptor
+// Create create ack adaptor
 func Create() (adaptor.WutongClusterAdaptor, error) {
 	return &customAdaptor{
 		Repo: repo.NewCustomClusterRepo(datastore.GetGDB()),
@@ -109,7 +109,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 		return cluster, fmt.Errorf("get cluster version failure %s", err.Error())
 	}
 	var vinfo version.Info
-	json.Unmarshal(versionByte, &vinfo)
+	_ = json.Unmarshal(versionByte, &vinfo)
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
 	if !versionutil.CheckVersion(cluster.CurrentVersion) {
@@ -143,7 +143,7 @@ func (c *customAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConf
 	return &v1alpha1.KubeConfig{Config: cc.KubeConfig}, nil
 }
 
-//DeleteCluster delete cluster
+// DeleteCluster delete cluster
 func (c *customAdaptor) DeleteCluster(eid, clusterID string) error {
 	cluster, _ := c.DescribeCluster(eid, clusterID)
 	if cluster != nil && cluster.WutongInit {
@@ -154,12 +154,7 @@ func (c *customAdaptor) DeleteCluster(eid, clusterID string) error {
 
 func (c *customAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
 	return &v1alpha1.WutongInitConfig{
-		EnableHA: func() bool {
-			if cluster.Size > 3 {
-				return true
-			}
-			return false
-		}(),
+		EnableHA:     cluster.Size > 3,
 		ClusterID:    cluster.ClusterID,
 		GatewayNodes: gateway,
 		ChaosNodes:   chaos,

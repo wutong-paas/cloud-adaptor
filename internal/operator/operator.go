@@ -35,7 +35,9 @@ type Operator struct {
 }
 
 const (
+	// RegionArchAmd64 -
 	RegionArchAmd64 = "amd64" // default
+	// RegionArchArm64 -
 	RegionArchArm64 = "arm64"
 )
 

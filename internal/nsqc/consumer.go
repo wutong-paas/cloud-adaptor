@@ -30,7 +30,7 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 )
 
-//TaskConsumer task producer
+// TaskConsumer task producer
 type TaskConsumer interface {
 	Start() error
 }
@@ -88,7 +88,7 @@ func (c *taskConsumer) Start() error {
 
 	// Gracefully stop the consumer.
 	defer createConsumer.Stop()
-	term := make(chan os.Signal)
+	term := make(chan os.Signal, 1)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	select {
 	case v := <-initConsumer.StopChan:

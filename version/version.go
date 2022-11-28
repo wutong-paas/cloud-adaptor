@@ -23,13 +23,13 @@ import (
 	"strings"
 )
 
-//WutongRegionVersion wutong region install version
+// WutongRegionVersion wutong region install version
 var WutongRegionVersion = "v1.0.0-stable"
 
-//OperatorVersion operator image tag
+// OperatorVersion operator image tag
 var OperatorVersion = "v1.0.0-stable"
 
-//InstallImageRepo install image repo
+// InstallImageRepo install image repo
 var InstallImageRepo = "swr.cn-southwest-2.myhuaweicloud.com/wutong"
 
 func init() {
@@ -42,7 +42,5 @@ func init() {
 	if os.Getenv("OPERATOR_VERSION") != "" {
 		OperatorVersion = os.Getenv("OPERATOR_VERSION")
 	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+	InstallImageRepo = strings.TrimSuffix(InstallImageRepo, "/")
 }

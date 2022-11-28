@@ -55,18 +55,11 @@ type rkeAdaptor struct {
 	Repo repo.RKEClusterRepository
 }
 
-//Create create ack adaptor
+// Create create ack adaptor
 func Create() (adaptor.WutongClusterAdaptor, error) {
 	return &rkeAdaptor{
 		Repo: repo.NewRKEClusterRepo(datastore.GetGDB()),
 	}, nil
-}
-
-func toString(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }
 
 func (r *rkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
@@ -110,12 +103,7 @@ func (r *rkeAdaptor) GetWutongInitConfig(
 	rollback func(step, message, status string),
 ) *v1alpha1.WutongInitConfig {
 	return &v1alpha1.WutongInitConfig{
-		EnableHA: func() bool {
-			if cluster.Size > 3 {
-				return true
-			}
-			return false
-		}(),
+		EnableHA:     cluster.Size > 3,
 		ClusterID:    cluster.ClusterID,
 		GatewayNodes: gateway,
 		ChaosNodes:   chaos,
@@ -155,7 +143,7 @@ func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, con
 		rollback("InitClusterConfig", "RKE config not found", "failure")
 		return nil
 	}
-	if len(rkeConfig.Nodes) < 0 {
+	if len(rkeConfig.Nodes) == 0 {
 		rollback("InitClusterConfig", "Provide at least one node", "failure")
 		return nil
 	}
@@ -207,7 +195,7 @@ func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, con
 		os.RemoveAll(clusterStatPath)
 	}
 
-	os.MkdirAll(clusterStatPath, 0755)
+	_ = os.MkdirAll(clusterStatPath, 0755)
 
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
 	out, _ := yaml.Marshal(rkeConfig)
@@ -286,7 +274,7 @@ func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, con
 
 func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 	var nodes v1alpha1.NodeList
-	json.Unmarshal([]byte(rkecluster.NodeList), &nodes)
+	_ = json.Unmarshal([]byte(rkecluster.NodeList), &nodes)
 	cluster := &v1alpha1.Cluster{
 		Name:              rkecluster.Name,
 		ClusterID:         rkecluster.ClusterID,
@@ -318,7 +306,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			defer cancel()
 			versionByte, err := coreclient.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 			var info version.Info
-			json.Unmarshal(versionByte, &info)
+			_ = json.Unmarshal(versionByte, &info)
 			if err == nil {
 				cluster.CurrentVersion = info.String()
 				if !versionutil.CheckVersion(cluster.CurrentVersion) {
@@ -588,7 +576,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	}
 	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, rkecluster.EnterpriseID, rkecluster.Name)
 
-	os.MkdirAll(clusterStatPath, 0755)
+	_ = os.MkdirAll(clusterStatPath, 0755)
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
 
 	clusterStatFile := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.rkestate", configDir, rkecluster.EnterpriseID, rkecluster.Name)
@@ -599,7 +587,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 		if err != nil {
 			logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
 			rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
-			r.Repo.Update(rkecluster)
+			_ = r.Repo.Update(rkecluster)
 			return nil
 		}
 	}
@@ -607,21 +595,21 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	if err := os.Rename(filePath, filePath+".bak"); err != nil {
 		rollback("InitClusterConfig", err.Error(), "failure")
 		logrus.Errorf("move old cluster config file failure %s", err.Error())
-		r.Repo.Update(rkecluster)
+		_ = r.Repo.Update(rkecluster)
 		return nil
 	}
 	out, _ := yaml.Marshal(en.RKEConfig)
 	if err := ioutil.WriteFile(filePath, out, 0755); err != nil {
 		rollback("InitClusterConfig", err.Error(), "failure")
 		logrus.Errorf("write rke cluster config file failure %s", err.Error())
-		os.Rename(filePath+".bak", filePath)
-		r.Repo.Update(rkecluster)
+		_ = os.Rename(filePath+".bak", filePath)
+		_ = r.Repo.Update(rkecluster)
 		return nil
 	}
 	// set install log out
 	logPath := fmt.Sprintf("%s/create.log", clusterStatPath)
 	// svae old log
-	os.Rename(logPath, logPath+"."+time.Now().Format(time.RFC3339))
+	_ = os.Rename(logPath, logPath+"."+time.Now().Format(time.RFC3339))
 	writer, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE, 0755)
 	if err != nil {
 		logrus.Errorf("open create cluster log file %s failure %s", logPath, err.Error())
@@ -636,7 +624,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	//up cluster
 	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
 	if err := cmd.ClusterInit(ctx, en.RKEConfig, hosts.DialersOptions{}, flags); err != nil {
-		r.Repo.Update(rkecluster)
+		_ = r.Repo.Update(rkecluster)
 		rollback("InitClusterConfig", err.Error(), "failure")
 		return nil
 	}
@@ -646,7 +634,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	rollback("UpdateKubernetes", filePath, "start")
 	APIURL, _, _, _, configs, err := r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
 	if err != nil {
-		r.Repo.Update(rkecluster)
+		_ = r.Repo.Update(rkecluster)
 		rollback("UpdateKubernetes", err.Error(), "failure")
 		return nil
 	}

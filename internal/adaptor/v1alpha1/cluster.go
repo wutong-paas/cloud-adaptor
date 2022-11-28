@@ -52,7 +52,7 @@ func init() {
 	utilruntime.Must(wutongv1alpha1.AddToScheme(scheme))
 }
 
-//Cluster cluster
+// Cluster cluster
 type Cluster struct {
 	Name              string                 `json:"name,omitempty"`
 	ClusterID         string                 `json:"cluster_id,omitempty"`
@@ -78,37 +78,37 @@ type Cluster struct {
 	EIP               []string               `json:"eip,omitempty"`
 }
 
-//RunningState running
+// RunningState running
 var RunningState = "running"
 
-//OfflineState offline
+// OfflineState offline
 var OfflineState = "offline"
 
-//InstallingState offline
+// InstallingState offline
 var InstallingState = "installing"
 
-//InitState -
+// InitState -
 var InitState = "initial"
 
-//InstallFailed 安装失败
+// InstallFailed 安装失败
 var InstallFailed = "failed"
 
-//Time time
+// Time time
 type Time struct {
 	timer time.Time
 }
 
-//NewTime new time
+// NewTime new time
 func NewTime(timer time.Time) Time {
 	return Time{timer: timer}
 }
 
-//Time time
+// Time time
 func (t *Time) Time() time.Time {
 	return t.timer
 }
 
-//MarshalJSON -
+// MarshalJSON -
 func (t *Time) MarshalJSON() ([]byte, error) {
 	b := make([]byte, 0, len(time.RFC3339)+2)
 	b = append(b, '"')
@@ -117,12 +117,10 @@ func (t *Time) MarshalJSON() ([]byte, error) {
 	return b, nil
 }
 
-//UnmarshalJSON -
+// UnmarshalJSON -
 func (t *Time) UnmarshalJSON(in []byte) error {
 	inStr := string(in)
-	if strings.Contains(inStr, "\"") {
-		inStr = strings.Replace(inStr, "\"", "", -1)
-	}
+	inStr = strings.Replace(inStr, "\"", "", -1)
 	t1, err := time.Parse(time.RFC3339, inStr)
 	if err != nil {
 		return err
@@ -131,7 +129,7 @@ func (t *Time) UnmarshalJSON(in []byte) error {
 	return nil
 }
 
-//MasterURL master url struct
+// MasterURL master url struct
 type MasterURL struct {
 	APIServerEndpoint         string `json:"api_server_endpoint,omitempty"`
 	MiranaEndpoint            string `json:"mirana_endpoint,omitempty"`
@@ -139,7 +137,7 @@ type MasterURL struct {
 	IntranetAPIServerEndpoint string `json:"intranet_api_server_endpoint,omitempty"`
 }
 
-//MarshalJSON -
+// MarshalJSON -
 func (t *MasterURL) MarshalJSON() ([]byte, error) {
 	var info = make(map[string]interface{})
 	if t.APIServerEndpoint != "" {
@@ -157,7 +155,7 @@ func (t *MasterURL) MarshalJSON() ([]byte, error) {
 	return json.Marshal(info)
 }
 
-//UnmarshalJSON -
+// UnmarshalJSON -
 func (t *MasterURL) UnmarshalJSON(in []byte) error {
 	inStr := string(in)
 	if len(inStr) < 3 {
@@ -184,11 +182,11 @@ func (t *MasterURL) UnmarshalJSON(in []byte) error {
 	return nil
 }
 
-//CreateClusterConfig cluster config
+// CreateClusterConfig cluster config
 type CreateClusterConfig interface {
 }
 
-//KubernetesClusterConfig kubernetes cluster commmon config
+// KubernetesClusterConfig kubernetes cluster commmon config
 type KubernetesClusterConfig struct {
 	EnterpriseID       string                            `json:"eid"`
 	AccessKey          string                            `json:"access_key"`
@@ -213,10 +211,10 @@ type KubernetesClusterConfig struct {
 	KubernetesVersion  string                            `json:"kubernetesVersion,omitempty"`
 }
 
-//NodeList node list
+// NodeList node list
 type NodeList []ConfigNode
 
-//Validate validate nodes
+// Validate validate nodes
 func (n NodeList) Validate() error {
 	if len(n) == 0 {
 		return bcode.ErrClusterNodeEmpty
@@ -249,7 +247,7 @@ func (n NodeList) Validate() error {
 	return nil
 }
 
-//ConfigNode config node
+// ConfigNode config node
 type ConfigNode struct {
 	IP               string   `json:"ip"`
 	InternalAddress  string   `json:"internalIP,omitempty"`
@@ -259,13 +257,13 @@ type ConfigNode struct {
 	Roles            []string `json:"roles,omitempty"`
 }
 
-//ClusterType 集群类型
+// ClusterType 集群类型
 type ClusterType string
 
-//ManagedKubernetes 托管集群
+// ManagedKubernetes 托管集群
 var ManagedKubernetes ClusterType = "ManagedKubernetes"
 
-//AckClusterConfig ack cluster config
+// AckClusterConfig ack cluster config
 type AckClusterConfig struct {
 	Name                 string      `json:"name,omitempty"`
 	ClusterType          ClusterType `json:"cluster_type,omitempty"`
@@ -300,31 +298,31 @@ type AckClusterConfig struct {
 	CPUPolicy                string           `json:"cpu_policy,omitempty"`
 }
 
-//Addon 选装addon
+// Addon 选装addon
 type Addon struct {
 	Name    string `json:"name,omitempty"`
 	Disable bool   `json:"disable,omitempty"`
 }
 
-//Runtime container runtime
+// Runtime container runtime
 type Runtime struct {
 	Name    string `json:"name,omitempty"`
 	Version string `json:"version,omitempty"`
 }
 
-//WorkerDataDisk -
+// WorkerDataDisk -
 type WorkerDataDisk struct {
 	Category  string `json:"category,omitempty"`
 	Size      string `json:"size,omitempty"`
 	Encrypted string `json:"encrypted,omitempty"`
 }
 
-//KubeConfig kube config
+// KubeConfig kube config
 type KubeConfig struct {
 	Config string `json:"config,omitempty"`
 }
 
-//ToKubeConfig Converts to a kube config structure
+// ToKubeConfig Converts to a kube config structure
 func (c *KubeConfig) ToKubeConfig() (*rest.Config, error) {
 	config, err := clientcmd.Load([]byte(c.Config))
 	if err != nil {
@@ -333,7 +331,7 @@ func (c *KubeConfig) ToKubeConfig() (*rest.Config, error) {
 	return clientcmd.NewDefaultClientConfig(*config, &clientcmd.ConfigOverrides{}).ClientConfig()
 }
 
-//KubeServer kube api
+// KubeServer kube api
 func (c *KubeConfig) KubeServer() (string, error) {
 	config, err := clientcmd.Load([]byte(c.Config))
 	if err != nil {
@@ -345,11 +343,11 @@ func (c *KubeConfig) KubeServer() (string, error) {
 	return "", nil
 }
 
-//Save save kubeconfig
+// Save save kubeconfig
 func (c *KubeConfig) Save(configpath string) error {
 	pDir := path.Dir(configpath)
 	if _, err := os.Stat(pDir); os.IsNotExist(err) {
-		os.MkdirAll(pDir, 0755)
+		_ = os.MkdirAll(pDir, 0755)
 	}
 	if err := ioutil.WriteFile(configpath, []byte(c.Config), 0644); err != nil {
 		return err
@@ -357,7 +355,7 @@ func (c *KubeConfig) Save(configpath string) error {
 	return nil
 }
 
-//GetKubeClient get kube client
+// GetKubeClient get kube client
 func (c *KubeConfig) GetKubeClient() (*kubernetes.Clientset, client.Client, error) {
 	config, err := c.ToKubeConfig()
 	if err != nil {
@@ -397,7 +395,7 @@ type VPC struct {
 	Tags            []Tag  `json:"Tags" xml:"Tags"`
 }
 
-//VSwitch -
+// VSwitch -
 type VSwitch struct {
 	VpcID                   string `json:"VpcId" xml:"VpcId"`
 	RegionID                string `json:"RegionId" xml:"RegionId"`
@@ -422,13 +420,13 @@ type Zone struct {
 	LocalName string `json:"LocalName" xml:"LocalName"`
 }
 
-//Tag TAG
+// Tag TAG
 type Tag struct {
 	Key   string `json:"Key" xml:"Key"`
 	Value string `json:"Value" xml:"Value"`
 }
 
-//InstanceType worker instance type
+// InstanceType worker instance type
 type InstanceType struct {
 	InstanceTypeID     string  `json:"InstanceTypeId" xml:"InstanceTypeId"`
 	CPUCoreCount       int     `json:"CpuCoreCount" xml:"CpuCoreCount"`
@@ -436,7 +434,7 @@ type InstanceType struct {
 	InstanceTypeFamily string  `json:"InstanceTypeFamily" xml:"InstanceTypeFamily"`
 }
 
-//Database database
+// Database database
 type Database struct {
 	Name       string `json:"name,omitempty"`
 	RegionID   string `json:"regionID,omitempty"`
@@ -452,7 +450,7 @@ type Database struct {
 	ClusterID  string `json:"clusterID"`
 }
 
-//WutongInitConfig wutong init config
+// WutongInitConfig wutong init config
 type WutongInitConfig struct {
 	EnableHA        bool
 	WutongVersion   string
@@ -467,7 +465,7 @@ type WutongInitConfig struct {
 	EIPs            []string
 }
 
-//NasStorageInfo nas storage info
+// NasStorageInfo nas storage info
 type NasStorageInfo struct {
 	FileSystemID string `json:"FileSystemId" xml:"FileSystemId"`
 	Description  string `json:"Description" xml:"Description"`
@@ -504,7 +502,7 @@ type LoadBalancer struct {
 	AddressIPVersion   string `json:"AddressIPVersion" xml:"AddressIPVersion"`
 }
 
-//WutongRegionStatus wutong region status
+// WutongRegionStatus wutong region status
 type WutongRegionStatus struct {
 	OperatorReady     bool
 	OperatorInstalled bool
@@ -514,14 +512,14 @@ type WutongRegionStatus struct {
 	RegionConfig      *v1.ConfigMap
 }
 
-//AvailableResourceZone available resource
+// AvailableResourceZone available resource
 type AvailableResourceZone struct {
 	Status         string `json:"status"`
 	StatusCategory string `json:"statusCategory"`
 	ZoneID         string `json:"zoneID"`
 }
 
-//ExpansionNode expansion node
+// ExpansionNode expansion node
 type ExpansionNode struct {
 	EnterpriseID string `json:"eid"`
 	Provider     string `json:"provider"`

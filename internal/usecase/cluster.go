@@ -460,7 +460,7 @@ func (c *ClusterUsecase) GetInitWutongTaskByClusterID(eid, clusterID, providerNa
 	}
 
 	// sync the status of events and the task
-	c.ListTaskEvent(eid, task.TaskID)
+	_, _ = c.ListTaskEvent(eid, task.TaskID)
 
 	// get the real status from the cluster
 	status, err := c.getTaskClusterStatus(task)
@@ -781,7 +781,7 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 	if source == nil {
 		return nil, bcode.ErrClusterTaskNotFound
 	}
-	mapper.Mapper(source, task)
+	_ = mapper.Mapper(source, task)
 	task.TaskType = taskType
 	return task, nil
 }
@@ -1113,7 +1113,7 @@ func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) 
 	go func() {
 		logrus.Infof("start uninstall cluster %s by provider %s", clusterID, provider)
 		if err := rri.UninstallRegion(clusterID); err != nil {
-			logrus.Errorf("uninstall region %s failure %s", err.Error())
+			logrus.Errorf("uninstall region %s failure %s", clusterID, err.Error())
 		}
 		if err := c.InitWutongTaskRepo.DeleteTask(eid, provider, clusterID); err != nil {
 			logrus.Errorf("delete region init task failure %s", err.Error())

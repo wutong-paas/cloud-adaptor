@@ -88,7 +88,7 @@ func NewDB() *gorm.DB {
 			break
 		}
 	} else {
-		os.MkdirAll(databasePath, 0755)
+		_ = os.MkdirAll(databasePath, 0755)
 		var err error
 		databaseFilePath := path.Join(databasePath, "db.sqlite3")
 		db, err = gorm.Open(sqlite.Open(databaseFilePath), gormCfg)
@@ -100,7 +100,7 @@ func NewDB() *gorm.DB {
 	return db
 }
 
-//GetGDB -
+// GetGDB -
 func GetGDB() *gorm.DB {
 	return gdb
 }

@@ -152,7 +152,8 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 	timer := time.NewTimer(time.Minute * 60)
 	defer timer.Stop()
 	defer ticker.Stop()
-	var operatorMessage, imageHubMessage, packageMessage, apiReadyMessage bool
+	// var operatorMessage, imageHubMessage, packageMessage, apiReadyMessage bool
+	var operatorMessage, imageHubMessage, packageMessage bool
 	for {
 		select {
 		case <-ctx.Done():
@@ -207,8 +208,11 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 		}
 
 		idx, condition := status.WutongCluster.Status.GetCondition(wutongv1alpha1.WutongClusterConditionTypeRunning)
-		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
-			apiReadyMessage = true
+		// if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
+		// 	apiReadyMessage = true
+		// 	break
+		// }
+		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage {
 			break
 		}
 	}
@@ -305,7 +309,7 @@ func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig types.I
 	initTask, err := CreateTask(InitWutongClusterTask, initConfig.InitWutongConfig)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(initConfig.GetEvent(&apiv1.Message{
+		_ = h.eventHandler.HandleEvent(initConfig.GetEvent(&apiv1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",
@@ -354,7 +358,7 @@ func (h *cloudInitTaskHandler) run(ctx context.Context, initTask Task, initConfi
 			if message.StepType == "Close" {
 				return
 			}
-			h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
+			_ = h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
 		}
 	}()
 	initTask.Run(ctx)
