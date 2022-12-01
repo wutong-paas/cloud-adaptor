@@ -135,7 +135,7 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 	// helm repo update
 	repoUpdateCmd := exec.Cmd{
 		Path:   helmPath,
-		Args:   []string{helmPath, "repo", "update", "wutong"},
+		Args:   []string{helmPath, "repo", "update"},
 		Stdout: os.Stdout,
 		Stdin:  os.Stdin,
 		Stderr: os.Stderr,
