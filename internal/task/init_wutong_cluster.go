@@ -86,7 +86,7 @@ func (c *InitWutongCluster) Run(ctx context.Context) {
 	}
 	// check cluster version
 	if !versionutil.CheckVersion(cluster.KubernetesVersion) {
-		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init wutong support kubernetes version is 1.16.x-1.22.x", cluster.KubernetesVersion), "failure")
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init wutong support kubernetes version is 1.19.x-1.26.x", cluster.KubernetesVersion), "failure")
 		return
 	}
 	// check cluster connection status
