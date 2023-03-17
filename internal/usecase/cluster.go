@@ -35,7 +35,6 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	v1 "github.com/wutong-paas/cloud-adaptor/api/cloud-adaptor/v1"
-	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
 	"github.com/wutong-paas/cloud-adaptor/internal/adaptor"
 	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/factory"
 	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
@@ -48,7 +47,6 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/constants"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/md5util"
-	"github.com/wutong-paas/cloud-adaptor/pkg/util/ssh"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/uuidutil"
 	wutongv1alpha1 "github.com/wutong-paas/wutong-operator/api/v1alpha1"
 	"github.com/wutong-paas/wutong-operator/util/wtutil"
@@ -1171,20 +1169,22 @@ func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []
 
 // GetInitNodeCmd -
 func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes, error) {
-	pub, err := ssh.GetOrMakeSSHRSA()
-	if err != nil {
-		return nil, errors.Wrap(err, "get or create ssh rsa")
-	}
+	// TODO: not implement
+	return nil, nil
+	// pub, err := ssh.GetOrMakeSSHRSA()
+	// if err != nil {
+	// 	return nil, errors.Wrap(err, "get or create ssh rsa")
+	// }
 
-	if config.C.IsOffline {
-		return &v1.InitNodeCmdRes{
-			Cmd:       fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
-			IsOffline: true,
-		}, nil
-	}
-	return &v1.InitNodeCmdRes{
-		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.wutong.com/init_node_5.4 | bash`, pub),
-	}, nil
+	// if config.C.IsOffline {
+	// 	return &v1.InitNodeCmdRes{
+	// 		Cmd:       fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
+	// 		IsOffline: true,
+	// 	}, nil
+	// }
+	// return &v1.InitNodeCmdRes{
+	// 	Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.wutong.com/init_node_5.4 | bash`, pub),
+	// }, nil
 }
 
 // ListWutongComponents -

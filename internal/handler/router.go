@@ -80,7 +80,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	apiv1 := g.Group("/api/v1")
 	apiv1.GET("/backup", r.system.Backup)
 	apiv1.POST("/recover", r.system.Recover)
-	// apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
+	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
 	// cluster
 	apiv1.GET("/kclusters", r.cluster.ListKubernetesClusters)
 	apiv1.POST("/kclusters", r.cluster.AddKubernetesCluster)
