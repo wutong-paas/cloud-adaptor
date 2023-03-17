@@ -27,7 +27,7 @@ spec:
           args:
             - --leader-elect
             - --zap-log-level=4
-          image: swr.cn-southwest-2.myhuaweicloud.com/wutong/wutong-operator:v1.0.0-stable
+          image: swr.cn-southwest-2.myhuaweicloud.com/wutong/wutong-operator:v1.1.0-stable
           imagePullPolicy: IfNotPresent
           name: wutong-operator
           securityContext:

@@ -24,10 +24,10 @@ import (
 )
 
 // WutongRegionVersion wutong region install version
-var WutongRegionVersion = "v1.0.0-stable"
+var WutongRegionVersion = "v1.1.0-stable"
 
 // OperatorVersion operator image tag
-var OperatorVersion = "v1.0.0-stable"
+var OperatorVersion = "v1.1.0-stable"
 
 // InstallImageRepo install image repo
 var InstallImageRepo = "swr.cn-southwest-2.myhuaweicloud.com/wutong"
