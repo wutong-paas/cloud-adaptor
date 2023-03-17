@@ -51,8 +51,6 @@ type UpdateAppStoreReq struct {
 
 // AppStore -
 type AppStore struct {
-	// The enterprise id.
-	EID string `json:"eid"`
 	// The name of app store.
 	Name string `json:"name"`
 	// The url of app store.

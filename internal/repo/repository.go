@@ -23,53 +23,53 @@ import (
 	"gorm.io/gorm"
 )
 
-//CloudAccesskeyRepository enterprise accesskey repository
+// CloudAccesskeyRepository
 type CloudAccesskeyRepository interface {
 	Create(ent *model.CloudAccessKey) error
-	GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error)
+	GetByProvider(providerName string) (*model.CloudAccessKey, error)
 }
 
-//CreateKubernetesTaskRepository enterprise create kubernetes task
+// CreateKubernetesTaskRepository
 type CreateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) CreateKubernetesTaskRepository
 	Create(ent *model.CreateKubernetesTask) error
-	GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error)
-	UpdateStatus(eid string, taskID string, status string) error
-	GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error)
+	GetLastTask(providerName string) (*model.CreateKubernetesTask, error)
+	UpdateStatus(taskID string, status string) error
+	GetTask(taskID string) (*model.CreateKubernetesTask, error)
 	GetLatestOneByName(name string) (*model.CreateKubernetesTask, error)
 	GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error)
 }
 
-//InitWutongTaskRepository init wutong region task
+// InitWutongTaskRepository init wutong region task
 type InitWutongTaskRepository interface {
 	Transaction(tx *gorm.DB) InitWutongTaskRepository
 	Create(ent *model.InitWutongTask) error
-	GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitWutongTask, error)
-	UpdateStatus(eid string, taskID string, status string) error
-	GetTask(eid string, taskID string) (*model.InitWutongTask, error)
-	DeleteTask(eid string, providerName, clusterID string) error
-	GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error)
+	GetTaskByClusterID(providerName, clusterID string) (*model.InitWutongTask, error)
+	UpdateStatus(taskID string, status string) error
+	GetTask(taskID string) (*model.InitWutongTask, error)
+	DeleteTask(providerName, clusterID string) error
+	GetTaskRunningLists() ([]*model.InitWutongTask, error)
 }
 
-//UpdateKubernetesTaskRepository -
+// UpdateKubernetesTaskRepository -
 type UpdateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository
 	Create(ent *model.UpdateKubernetesTask) error
-	GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error)
-	UpdateStatus(eid string, taskID string, status string) error
-	GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error)
-	GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error)
+	GetTaskByClusterID(clusterID string) (*model.UpdateKubernetesTask, error)
+	UpdateStatus(taskID string, status string) error
+	GetTask(taskID string) (*model.UpdateKubernetesTask, error)
+	GetLastTask(providerName string) (*model.UpdateKubernetesTask, error)
 }
 
-//TaskEventRepository task event
+// TaskEventRepository task event
 type TaskEventRepository interface {
 	Transaction(tx *gorm.DB) TaskEventRepository
 	Create(ent *model.TaskEvent) error
-	ListEvent(eid, taskID string) ([]*model.TaskEvent, error)
+	ListEvent(taskID string) ([]*model.TaskEvent, error)
 	UpdateStatusInBatch(eventIDs []string, status string) error
 }
 
-//WutongClusterConfigRepository -
+// WutongClusterConfigRepository -
 type WutongClusterConfigRepository interface {
 	Create(ent *model.WutongClusterConfig) error
 	Get(clusterID string) (*model.WutongClusterConfig, error)
@@ -79,16 +79,16 @@ type WutongClusterConfigRepository interface {
 type RKEClusterRepository interface {
 	Create(te *model.RKECluster) error
 	Update(te *model.RKECluster) error
-	GetCluster(eid, name string) (*model.RKECluster, error)
-	ListCluster(eid string) ([]*model.RKECluster, error)
-	DeleteCluster(eid, name string) error
+	GetCluster(name string) (*model.RKECluster, error)
+	ListCluster() ([]*model.RKECluster, error)
+	DeleteCluster(name string) error
 }
 
 // CustomClusterRepository -
 type CustomClusterRepository interface {
 	Create(cluster *model.CustomCluster) error
 	Update(cluster *model.CustomCluster) error
-	GetCluster(eid, name string) (*model.CustomCluster, error)
-	ListCluster(eid string) ([]*model.CustomCluster, error)
-	DeleteCluster(eid, name string) error
+	GetCluster(name string) (*model.CustomCluster, error)
+	ListCluster() ([]*model.CustomCluster, error)
+	DeleteCluster(name string) error
 }

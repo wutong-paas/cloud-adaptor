@@ -188,7 +188,6 @@ type CreateClusterConfig interface {
 
 // KubernetesClusterConfig kubernetes cluster commmon config
 type KubernetesClusterConfig struct {
-	EnterpriseID       string                            `json:"eid"`
 	AccessKey          string                            `json:"access_key"`
 	SecretKey          string                            `json:"secret_key"`
 	Provider           string                            `json:"provider_name"`
@@ -521,11 +520,10 @@ type AvailableResourceZone struct {
 
 // ExpansionNode expansion node
 type ExpansionNode struct {
-	EnterpriseID string `json:"eid"`
-	Provider     string `json:"provider"`
-	AccessKey    string `json:"accessKey"`
-	SecretKey    string `json:"secretKey"`
-	ClusterID    string `json:"clusterID"`
+	Provider  string `json:"provider"`
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKey"`
+	ClusterID string `json:"clusterID"`
 	// Deprecated.
 	Nodes              NodeList                          `json:"nodes,omitempty"`
 	WorkerResourceType string                            `json:"workerResourceType,omitempty"`

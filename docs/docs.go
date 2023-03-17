@@ -27,7 +27,7 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/api/v1/enterprises/:eid/appstores": {
+        "/api/v1/appstores": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -40,15 +40,7 @@ var doc = `{
                 ],
                 "summary": "returns a list of app stores.",
                 "operationId": "listAppStores",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "parameters": [],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -74,13 +66,6 @@ var doc = `{
                 "summary": "creates a new app store.",
                 "operationId": "createAppStore",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": ".",
                         "name": "createAppStoreReq",
@@ -119,7 +104,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/appstores/:name": {
+        "/api/v1/appstores/:name": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -133,13 +118,6 @@ var doc = `{
                 "summary": "returns the app store.",
                 "operationId": "getAppStore",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -182,13 +160,6 @@ var doc = `{
                 "summary": "updates the app store..",
                 "operationId": "updateAppStore",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -242,13 +213,6 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
                         "description": "the name of the app store",
                         "name": "name",
                         "in": "path",
@@ -274,7 +238,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/appstores/:name/apps": {
+        "/api/v1/appstores/:name/apps": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -288,13 +252,6 @@ var doc = `{
                 "summary": "returns a list of app templates.",
                 "operationId": "listTemplates",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -328,7 +285,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/appstores/:name/apps/:templateName": {
+        "/api/v1/appstores/:name/apps/:templateName": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -342,13 +299,6 @@ var doc = `{
                 "summary": "returns the app template.",
                 "operationId": "getAppTemplate",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -386,7 +336,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/appstores/:name/resync": {
+        "/api/v1/appstores/:name/resync": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -400,13 +350,6 @@ var doc = `{
                 "summary": "resync the app templates.",
                 "operationId": "resyncAppStore",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -434,7 +377,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/appstores/:name/templates/:templateName/versions/:version": {
+        "/api/v1/appstores/:name/templates/:templateName/versions/:version": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -448,13 +391,6 @@ var doc = `{
                 "summary": "returns the app template version.",
                 "operationId": "getAppTemplateVersion",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the name of the app store",
@@ -499,7 +435,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig": {
+        "/api/v1/kclusters/prune-update-rkeconfig": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -513,13 +449,6 @@ var doc = `{
                 "summary": "update rke config purely",
                 "operationId": "pruneUpdateRKEConfig",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": ".",
                         "name": "pruneUpdateRKEConfigReq",
@@ -546,7 +475,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/update-cluster": {
+        "/api/v1/update-cluster": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -560,13 +489,6 @@ var doc = `{
                 "summary": "updates kubernetes cluster.",
                 "operationId": "updateKubernetesCluster",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "description": ".",
                         "name": "updateKubernetesReq",
@@ -593,7 +515,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/update-cluster/:clusterID": {
+        "/api/v1/update-cluster/:clusterID": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -607,13 +529,6 @@ var doc = `{
                 "summary": "returns the information of the cluster.",
                 "operationId": "getUpdateKubernetesTask",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the cluster id",
@@ -638,7 +553,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components": {
+        "/api/v1/kclusters/{clusterID}/wutong-components": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -652,13 +567,6 @@ var doc = `{
                 "summary": "returns a list of wutong components.",
                 "operationId": "listWutongComponents",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the identify of cluster",
@@ -680,7 +588,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components/{podName}/events": {
+        "/api/v1/kclusters/{clusterID}/wutong-components/{podName}/events": {
             "get": {
                 "consumes": [
                     "application/json"
@@ -694,13 +602,6 @@ var doc = `{
                 "summary": "returns a list of wutong component pod events.",
                 "operationId": "listPodEvents",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "the enterprise id",
-                        "name": "eid",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "string",
                         "description": "the identify of cluster",
@@ -927,10 +828,6 @@ var doc = `{
             "properties": {
                 "branch": {
                     "description": "The branch of app store, which category is git repo.",
-                    "type": "string"
-                },
-                "eid": {
-                    "description": "The enterprise id.",
                     "type": "string"
                 },
                 "name": {
@@ -3875,9 +3772,6 @@ var doc = `{
             "type": "object",
             "properties": {
                 "clusterID": {
-                    "type": "string"
-                },
-                "eid": {
                     "type": "string"
                 },
                 "nodeNumber": {

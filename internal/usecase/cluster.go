@@ -103,11 +103,11 @@ func NewClusterUsecase(db *gorm.DB,
 }
 
 // ListKubernetesCluster list kubernetes cluster
-func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error) {
+func (c *ClusterUsecase) ListKubernetesCluster(re v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error) {
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if re.ProviderName != "rke" && re.ProviderName != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(re.ProviderName, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(re.ProviderName)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
@@ -121,7 +121,7 @@ func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesC
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	}
-	clusters, err := ad.ClusterList(eid)
+	clusters, err := ad.ClusterList()
 	if err != nil {
 		if strings.Contains(err.Error(), "ErrorCode: SignatureDoesNotMatch") {
 			return nil, bcode.ErrorAccessKeyNotMatch
@@ -139,7 +139,7 @@ func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesC
 }
 
 // CreateKubernetesCluster create kubernetes cluster task
-func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubernetesReq) (*model.CreateKubernetesTask, error) {
+func (c *ClusterUsecase) CreateKubernetesCluster(req v1.CreateKubernetesReq) (*model.CreateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		return nil, errors.New("TaskProducer is nil")
 	}
@@ -147,11 +147,10 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	clusterStatus := v1alpha1.OfflineState
 	if req.Provider == "custom" {
 		if err := c.customClusterRepo.Create(&model.CustomCluster{
-			Name:         req.Name,
-			EIP:          strings.Join(req.EIP, ","),
-			KubeConfig:   req.KubeConfig,
-			EnterpriseID: eid,
-			ClusterID:    clusterID,
+			Name:       req.Name,
+			EIP:        strings.Join(req.EIP, ","),
+			KubeConfig: req.KubeConfig,
+			ClusterID:  clusterID,
 		}); err != nil {
 			return nil, errors.Wrap(err, "create custom cluster")
 		}
@@ -170,10 +169,9 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	var rkeConfig v3.RancherKubernetesEngineConfig
 	if req.Provider == "rke" {
 		rkeCluster := &model.RKECluster{
-			Name:         req.Name,
-			Stats:        v1alpha1.InitState,
-			EnterpriseID: eid,
-			ClusterID:    clusterID,
+			Name:      req.Name,
+			Stats:     v1alpha1.InitState,
+			ClusterID: clusterID,
 		}
 		// Only the request to successfully create the rke cluster can send the task
 		if err := c.rkeClusterRepo.Create(rkeCluster); err != nil {
@@ -200,7 +198,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	var accessKey *model.CloudAccessKey
 	var err error
 	if req.Provider != "rke" && req.Provider != "custom" {
-		accessKey, err = c.CloudAccessKeyRepo.GetByProviderAndEnterprise(req.Provider, eid)
+		accessKey, err = c.CloudAccessKeyRepo.GetByProvider(req.Provider)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
@@ -210,7 +208,6 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		Provider:           req.Provider,
 		WorkerResourceType: req.WorkerResourceType,
 		WorkerNum:          req.WorkerNum,
-		EnterpriseID:       eid,
 		Region:             req.Region,
 		TaskID:             uuidutil.NewUUID(),
 		ClusterID:          clusterID,
@@ -220,8 +217,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	}
 	//send task
 	taskReq := types.KubernetesConfigMessage{
-		EnterpriseID: eid,
-		TaskID:       newTask.TaskID,
+		TaskID: newTask.TaskID,
 		KubernetesConfig: &v1alpha1.KubernetesClusterConfig{
 			ClusterName:        newTask.Name,
 			WorkerResourceType: newTask.WorkerResourceType,
@@ -229,7 +225,6 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			Provider:           newTask.Provider,
 			Region:             newTask.Region,
 			RKEConfig:          &rkeConfig,
-			EnterpriseID:       eid,
 		}}
 	if accessKey != nil {
 		taskReq.KubernetesConfig.AccessKey = accessKey.AccessKey
@@ -238,7 +233,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	if err := c.TaskProducer.SendCreateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
 	} else {
-		if err := c.CreateKubernetesTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
+		if err := c.CreateKubernetesTaskRepo.UpdateStatus(newTask.TaskID, "start"); err != nil {
 			logrus.Errorf("update task status failure %s", err.Error())
 		}
 	}
@@ -247,8 +242,8 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	return newTask, nil
 }
 
-func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, eid, clusterID, providerName string) error {
-	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, clusterID, providerName string) error {
+	kubeConfig, err := c.GetKubeConfig(clusterID, providerName)
 	if err != nil {
 		if err.Error() == "not found kube config" {
 			return nil
@@ -303,8 +298,8 @@ func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngi
 }
 
 // InitWutongRegion init wutong region
-func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v1.InitWutongRegionReq) (*model.InitWutongTask, error) {
-	oldTask, err := c.InitWutongTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
+func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, req v1.InitWutongRegionReq) (*model.InitWutongTask, error) {
+	oldTask, err := c.InitWutongTaskRepo.GetTaskByClusterID(req.Provider, req.ClusterID)
 	if err != nil && !errors.Is(err, bcode.ErrInitWutongTaskNotFound) {
 		return nil, err
 	}
@@ -312,22 +307,21 @@ func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v
 		return oldTask, bcode.ErrorLastTaskNotComplete
 	}
 
-	if err := c.isAlreadyInstalled(ctx, eid, req.ClusterID, req.Provider); err != nil {
+	if err := c.isAlreadyInstalled(ctx, req.ClusterID, req.Provider); err != nil {
 		return nil, err
 	}
 
 	var accessKey *model.CloudAccessKey
 	if req.Provider != "rke" && req.Provider != "custom" {
-		accessKey, err = c.CloudAccessKeyRepo.GetByProviderAndEnterprise(req.Provider, eid)
+		accessKey, err = c.CloudAccessKeyRepo.GetByProvider(req.Provider)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
 	}
 	newTask := &model.InitWutongTask{
-		TaskID:       uuidutil.NewUUID(),
-		Provider:     req.Provider,
-		EnterpriseID: eid,
-		ClusterID:    req.ClusterID,
+		TaskID:    uuidutil.NewUUID(),
+		Provider:  req.Provider,
+		ClusterID: req.ClusterID,
 	}
 
 	if err := c.InitWutongTaskRepo.Create(newTask); err != nil {
@@ -335,12 +329,10 @@ func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v
 		return nil, bcode.ServerErr
 	}
 	initTask := types.InitWutongConfigMessage{
-		EnterpriseID: eid,
-		TaskID:       newTask.TaskID,
+		TaskID: newTask.TaskID,
 		InitWutongConfig: &types.InitWutongConfig{
-			EnterpriseID: eid,
-			ClusterID:    newTask.ClusterID,
-			Provider:     newTask.Provider,
+			ClusterID: newTask.ClusterID,
+			Provider:  newTask.Provider,
 		}}
 	if accessKey != nil {
 		initTask.InitWutongConfig.AccessKey = accessKey.AccessKey
@@ -349,7 +341,7 @@ func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v
 	if err := c.TaskProducer.SendInitWutongRegionTask(initTask); err != nil {
 		logrus.Errorf("send init wutong region task failure %s", err.Error())
 	} else {
-		if err := c.InitWutongTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
+		if err := c.InitWutongTaskRepo.UpdateStatus(newTask.TaskID, "start"); err != nil {
 			logrus.Errorf("update task status failure %s", err.Error())
 		}
 	}
@@ -358,7 +350,7 @@ func (c *ClusterUsecase) InitWutongRegion(ctx context.Context, eid string, req v
 }
 
 // UpdateKubernetesCluster -
-func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*v1.UpdateKubernetesTask, error) {
+func (c *ClusterUsecase) UpdateKubernetesCluster(req v1.UpdateKubernetesReq) (*v1.UpdateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		logrus.Errorf("TaskProducer is nil")
 		return nil, bcode.ServerErr
@@ -379,18 +371,17 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	}
 
 	// check if the last task is complete
-	version, err := c.isLastTaskComplete(eid, req.ClusterID)
+	version, err := c.isLastTaskComplete(req.ClusterID)
 	if err != nil {
 		return nil, err
 	}
 
 	newTask := &model.UpdateKubernetesTask{
-		TaskID:       uuidutil.NewUUID(),
-		Provider:     req.Provider,
-		EnterpriseID: eid,
-		ClusterID:    req.ClusterID,
-		NodeNumber:   len(rkeConfig.Nodes),
-		Version:      version + 1, // optimistic lock
+		TaskID:     uuidutil.NewUUID(),
+		Provider:   req.Provider,
+		ClusterID:  req.ClusterID,
+		NodeNumber: len(rkeConfig.Nodes),
+		Version:    version + 1, // optimistic lock
 	}
 	if err := c.UpdateKubernetesTaskRepo.Create(newTask); err != nil {
 		return nil, errors.Wrap(err, "save update kubernetes task failure")
@@ -398,34 +389,31 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 
 	//send task
 	taskReq := types.UpdateKubernetesConfigMessage{
-		EnterpriseID: eid,
-		TaskID:       newTask.TaskID,
+		TaskID: newTask.TaskID,
 		Config: &v1alpha1.ExpansionNode{
-			Provider:     req.Provider,
-			ClusterID:    req.ClusterID,
-			EnterpriseID: eid,
-			RKEConfig:    &rkeConfig,
+			Provider:  req.Provider,
+			ClusterID: req.ClusterID,
+			RKEConfig: &rkeConfig,
 		}}
 	if err := c.TaskProducer.SendUpdateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
 	} else {
-		if err := c.CreateKubernetesTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
+		if err := c.CreateKubernetesTaskRepo.UpdateStatus(newTask.TaskID, "start"); err != nil {
 			logrus.Errorf("update task status failure %s", err.Error())
 		}
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
 	return &v1.UpdateKubernetesTask{
-		TaskID:       newTask.TaskID,
-		Provider:     newTask.Provider,
-		EnterpriseID: newTask.EnterpriseID,
-		ClusterID:    newTask.ClusterID,
-		NodeNumber:   newTask.NodeNumber,
+		TaskID:     newTask.TaskID,
+		Provider:   newTask.Provider,
+		ClusterID:  newTask.ClusterID,
+		NodeNumber: newTask.NodeNumber,
 	}, nil
 }
 
-func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) {
+func (c *ClusterUsecase) isLastTaskComplete(clusterID string) (int, error) {
 	// check if update task complete
-	updateTask, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, clusterID)
+	updateTask, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(clusterID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return 0, err
 	}
@@ -450,8 +438,8 @@ func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) 
 }
 
 // GetInitWutongTaskByClusterID get init wutong task
-func (c *ClusterUsecase) GetInitWutongTaskByClusterID(eid, clusterID, providerName string) (*model.InitWutongTask, error) {
-	task, err := c.InitWutongTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
+func (c *ClusterUsecase) GetInitWutongTaskByClusterID(clusterID, providerName string) (*model.InitWutongTask, error) {
+	task, err := c.InitWutongTaskRepo.GetTaskByClusterID(providerName, clusterID)
 	if err != nil {
 		if errors.Is(err, bcode.ErrInitWutongTaskNotFound) {
 			return nil, nil
@@ -460,7 +448,7 @@ func (c *ClusterUsecase) GetInitWutongTaskByClusterID(eid, clusterID, providerNa
 	}
 
 	// sync the status of events and the task
-	_, _ = c.ListTaskEvent(eid, task.TaskID)
+	_, _ = c.ListTaskEvent(task.TaskID)
 
 	// get the real status from the cluster
 	status, err := c.getTaskClusterStatus(task)
@@ -475,17 +463,17 @@ func (c *ClusterUsecase) GetInitWutongTaskByClusterID(eid, clusterID, providerNa
 }
 
 // GetUpdateKubernetesTask get update kubernetes task
-func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName string) (*v1.UpdateKubernetesRes, error) {
+func (c *ClusterUsecase) GetUpdateKubernetesTask(clusterID, providerName string) (*v1.UpdateKubernetesRes, error) {
 	var clusterName string
 	if providerName == "rke" {
-		cluster, err := c.rkeClusterRepo.GetCluster(eid, clusterID)
+		cluster, err := c.rkeClusterRepo.GetCluster(clusterID)
 		if err != nil {
 			return nil, err
 		}
 		clusterName = cluster.Name
 	}
 
-	task, err := c.getUpdateKubernetesTask(eid, clusterName, clusterID)
+	task, err := c.getUpdateKubernetesTask(clusterName, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -493,12 +481,12 @@ func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName st
 	var re v1.UpdateKubernetesRes
 	re.Task = task
 	if providerName == "rke" {
-		cluster, err := c.rkeClusterRepo.GetCluster(eid, clusterID)
+		cluster, err := c.rkeClusterRepo.GetCluster(clusterID)
 		if err != nil {
 			return nil, err
 		}
 
-		rkeConfig, err := c.getRKEConfig(eid, cluster)
+		rkeConfig, err := c.getRKEConfig(cluster)
 		if err != nil {
 			return nil, err
 		}
@@ -518,8 +506,8 @@ func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName st
 	return &re, nil
 }
 
-func (c *ClusterUsecase) getUpdateKubernetesTask(eid, name, clusterID string) (interface{}, error) {
-	update, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, clusterID)
+func (c *ClusterUsecase) getUpdateKubernetesTask(name, clusterID string) (interface{}, error) {
+	update, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(clusterID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -535,12 +523,12 @@ func (c *ClusterUsecase) getUpdateKubernetesTask(eid, name, clusterID string) (i
 	return create, nil
 }
 
-func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v3.RancherKubernetesEngineConfig, error) {
+func (c *ClusterUsecase) getRKEConfig(cluster *model.RKECluster) (*v3.RancherKubernetesEngineConfig, error) {
 	configDir := os.Getenv("CONFIG_DIR")
 	if configDir == "" {
 		configDir = "/tmp"
 	}
-	clusterYMLPath := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.yml", configDir, cluster.EnterpriseID, cluster.Name)
+	clusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
 	oldClusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
 
 	bytes, err := ioutil.ReadFile(clusterYMLPath)
@@ -566,8 +554,8 @@ func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v
 }
 
 // GetRKENodeList get rke kubernetes node list
-func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error) {
-	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
+func (c *ClusterUsecase) GetRKENodeList(clusterID string) (v1alpha1.NodeList, error) {
+	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(clusterID)
 	if err != nil {
 		return nil, bcode.NotFound
 	}
@@ -578,18 +566,17 @@ func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeLis
 	return nodes, nil
 }
 
-// AddAccessKey add accesskey info to enterprise
-func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*model.CloudAccessKey, error) {
-	ack, err := c.GetByProviderAndEnterprise(key.ProviderName, eid)
+// AddAccessKey
+func (c *ClusterUsecase) AddAccessKey(key v1.AddAccessKey) (*model.CloudAccessKey, error) {
+	ack, err := c.GetByProvider(key.ProviderName)
 	if err != nil && err != bcode.ErrorNotSetAccessKey {
 		return nil, err
 	}
-	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, ack.EnterpriseID) {
+	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, "") {
 		return ack, nil
 	}
 
 	ck := &model.CloudAccessKey{
-		EnterpriseID: eid,
 		ProviderName: key.ProviderName,
 		AccessKey:    key.AccessKey,
 		SecretKey:    key.SecretKey,
@@ -600,9 +587,9 @@ func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*model.C
 	return ck, nil
 }
 
-// GetByProviderAndEnterprise get by eid
-func (c *ClusterUsecase) GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error) {
-	key, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+// GetByProvider
+func (c *ClusterUsecase) GetByProvider(providerName string) (*model.CloudAccessKey, error) {
+	key, err := c.CloudAccessKeyRepo.GetByProvider(providerName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, bcode.ErrorNotSetAccessKey
@@ -619,11 +606,10 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 	}
 	ctx := c.DB.Begin()
 	ent := &model.TaskEvent{
-		TaskID:       em.TaskID,
-		EnterpriseID: em.EnterpriseID,
-		Status:       em.Message.Status,
-		StepType:     em.Message.StepType,
-		Message:      em.Message.Message,
+		TaskID:   em.TaskID,
+		Status:   em.Message.Status,
+		StepType: em.Message.StepType,
+		Message:  em.Message.Message,
 	}
 	ent.Reason = c.reasonFromMessage(ent.Message)
 
@@ -634,7 +620,7 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 
 	createKubernetesTaskRepo := c.CreateKubernetesTaskRepo.Transaction(ctx)
 	if (em.Message.StepType == "CreateCluster" || em.Message.StepType == "InstallKubernetes") && em.Message.Status == "success" {
-		if ckErr := createKubernetesTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
+		if ckErr := createKubernetesTaskRepo.UpdateStatus(em.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, ckErr
 		}
@@ -642,26 +628,26 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 	}
 	initWutongTaskRepo := c.InitWutongTaskRepo.Transaction(ctx)
 	if em.Message.StepType == "InitWutongRegion" && em.Message.Status == "success" {
-		if err := initWutongTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
+		if err := initWutongTaskRepo.UpdateStatus(em.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, err
 		}
 		logrus.Infof("set init task %s status is inited", em.TaskID)
 	}
 	if em.Message.StepType == "UpdateKubernetes" && em.Message.Status == "success" {
-		if err := c.UpdateKubernetesTaskRepo.Transaction(ctx).UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
+		if err := c.UpdateKubernetesTaskRepo.Transaction(ctx).UpdateStatus(em.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, err
 		}
 		logrus.Infof("set init task %s status is inited", em.TaskID)
 	}
 	if em.Message.Status == "failure" {
-		if initErr := initWutongTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+		if initErr := initWutongTaskRepo.UpdateStatus(em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, initErr
 		}
 
-		if ckErr := createKubernetesTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
+		if ckErr := createKubernetesTaskRepo.UpdateStatus(em.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
 			ctx.Rollback()
 			return nil, ckErr
 		}
@@ -683,8 +669,8 @@ func (c *ClusterUsecase) reasonFromMessage(message string) string {
 }
 
 // ListTaskEvent list task event list
-func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error) {
-	task, err := c.getTask(eid, taskID)
+func (c *ClusterUsecase) ListTaskEvent(taskID string) ([]*model.TaskEvent, error) {
+	task, err := c.getTask(taskID)
 	if err != nil {
 		if errors.Is(err, bcode.ErrClusterTaskNotFound) {
 			return nil, nil
@@ -692,7 +678,7 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 		return nil, err
 	}
 
-	events, err := c.TaskEventRepo.ListEvent(eid, taskID)
+	events, err := c.TaskEventRepo.ListEvent(taskID)
 	if err != nil {
 		return nil, err
 	}
@@ -701,34 +687,34 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 	for i := range events {
 		event := events[i]
 		if (event.StepType == "CreateCluster" || event.StepType == "InstallKubernetes") && event.Status == "success" {
-			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
+			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
 				logrus.Errorf("set create kubernetes task %s status failure %s", event.TaskID, err.Error())
 			}
 			logrus.Infof("set create kubernetes task %s status is complete", event.TaskID)
 		}
 		if event.StepType == "InitWutongRegion" && event.Status == "success" {
-			if err := c.InitWutongTaskRepo.UpdateStatus(eid, event.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
+			if err := c.InitWutongTaskRepo.UpdateStatus(event.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
 				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.StepType == "UpdateKubernetes" && event.Status == "success" {
-			if err := c.UpdateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
+			if err := c.UpdateKubernetesTaskRepo.UpdateStatus(event.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
 				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.Status == "failure" {
 			needSync = true
-			if initErr := c.InitWutongTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+			if initErr := c.InitWutongTaskRepo.UpdateStatus(event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
 				logrus.Errorf("set init wutong task %s status failure %s", event.TaskID, err.Error())
 			}
 
-			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
+			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
 				logrus.Errorf("set create kubernetes task %s status failure %s", event.TaskID, err.Error())
 			}
 
-			if ckErr := c.UpdateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
+			if ckErr := c.UpdateKubernetesTaskRepo.UpdateStatus(event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
 				logrus.Errorf("set update kubernetes task %s status failure %s", event.TaskID, err.Error())
 			}
 		}
@@ -743,13 +729,13 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 	return events, nil
 }
 
-func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error) {
+func (c *ClusterUsecase) getTask(taskID string) (*domain.ClusterTask, error) {
 	var source interface{}
 	var taskType domain.ClusterTaskType
 	task := &domain.ClusterTask{}
 
 	// init wutong task
-	initWutongTask, err := c.InitWutongTaskRepo.GetTask(eid, taskID)
+	initWutongTask, err := c.InitWutongTaskRepo.GetTask(taskID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -759,7 +745,7 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 	}
 
 	// create kubernetes task
-	createKubernetesTask, err := c.CreateKubernetesTaskRepo.GetTask(eid, taskID)
+	createKubernetesTask, err := c.CreateKubernetesTaskRepo.GetTask(taskID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -769,7 +755,7 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 	}
 
 	// update kubernetes cluster
-	updateKubernetesCluster, err := c.UpdateKubernetesTaskRepo.GetTask(eid, taskID)
+	updateKubernetesCluster, err := c.UpdateKubernetesTaskRepo.GetTask(taskID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -787,65 +773,63 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 }
 
 // GetLastCreateKubernetesTask get last create kubernetes task
-func (c *ClusterUsecase) GetLastCreateKubernetesTask(eid, providerName string) (*model.CreateKubernetesTask, error) {
-	task, err := c.CreateKubernetesTaskRepo.GetLastTask(eid, providerName)
+func (c *ClusterUsecase) GetLastCreateKubernetesTask(providerName string) (*model.CreateKubernetesTask, error) {
+	task, err := c.CreateKubernetesTaskRepo.GetLastTask(providerName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
 	}
-	updateTask, err := c.UpdateKubernetesTaskRepo.GetLastTask(eid, providerName)
+	updateTask, err := c.UpdateKubernetesTaskRepo.GetLastTask(providerName)
 	if err != nil {
 		return task, nil
 	}
 	if task.CreatedAt.After(updateTask.CreatedAt) {
 		return task, nil
 	}
-	cluster, err := c.rkeClusterRepo.GetCluster(eid, updateTask.ClusterID)
+	cluster, err := c.rkeClusterRepo.GetCluster(updateTask.ClusterID)
 	if err != nil {
 		return task, nil
 	}
 	return &model.CreateKubernetesTask{
-		Name:         cluster.Name,
-		Provider:     providerName,
-		EnterpriseID: eid,
-		TaskID:       updateTask.TaskID,
-		Status:       updateTask.Status,
-		ClusterID:    updateTask.ClusterID,
+		Name:      cluster.Name,
+		Provider:  providerName,
+		TaskID:    updateTask.TaskID,
+		Status:    updateTask.Status,
+		ClusterID: updateTask.ClusterID,
 	}, nil
 }
 
 // GetCreateKubernetesTask get task
-func (c *ClusterUsecase) GetCreateKubernetesTask(eid, taskID string) (*model.CreateKubernetesTask, error) {
-	task, err := c.CreateKubernetesTaskRepo.GetTask(eid, taskID)
+func (c *ClusterUsecase) GetCreateKubernetesTask(taskID string) (*model.CreateKubernetesTask, error) {
+	task, err := c.CreateKubernetesTaskRepo.GetTask(taskID)
 	if err != nil {
-		updateTask, err := c.UpdateKubernetesTaskRepo.GetTask(eid, taskID)
+		updateTask, err := c.UpdateKubernetesTaskRepo.GetTask(taskID)
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return nil, bcode.NotFound
 			}
 			return nil, err
 		}
-		cluster, err := c.rkeClusterRepo.GetCluster(eid, updateTask.ClusterID)
+		cluster, err := c.rkeClusterRepo.GetCluster(updateTask.ClusterID)
 		if err != nil {
 			return task, nil
 		}
 		return &model.CreateKubernetesTask{
-			Name:         cluster.Name,
-			Provider:     updateTask.Provider,
-			EnterpriseID: eid,
-			TaskID:       updateTask.TaskID,
-			Status:       updateTask.Status,
-			ClusterID:    updateTask.ClusterID,
+			Name:      cluster.Name,
+			Provider:  updateTask.Provider,
+			TaskID:    updateTask.TaskID,
+			Status:    updateTask.Status,
+			ClusterID: updateTask.ClusterID,
 		}, nil
 	}
 	return task, err
 }
 
 // GetTaskRunningLists get runinig tasks
-func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error) {
-	tasks, err := c.InitWutongTaskRepo.GetTaskRunningLists(eid)
+func (c *ClusterUsecase) GetTaskRunningLists() ([]*model.InitWutongTask, error) {
+	tasks, err := c.InitWutongTaskRepo.GetTaskRunningLists()
 	if err != nil {
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -858,11 +842,11 @@ func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitWutongTas
 }
 
 // GetKubeConfig get kube config file
-func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (string, error) {
+func (c *ClusterUsecase) GetKubeConfig(clusterID, providerName string) (string, error) {
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(providerName)
 		if err != nil {
 			return "", bcode.ErrorNotFoundAccessKey
 		}
@@ -876,7 +860,7 @@ func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (str
 			return "", bcode.ErrorProviderNotSupport
 		}
 	}
-	kube, err := ad.GetKubeConfig(eid, clusterID)
+	kube, err := ad.GetKubeConfig(clusterID)
 	if err != nil {
 		return "", err
 	}
@@ -884,11 +868,11 @@ func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (str
 }
 
 // GetRegionConfig get region config
-func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error) {
+func (c *ClusterUsecase) GetRegionConfig(clusterID, providerName string) (map[string]string, error) {
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(providerName)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
@@ -902,7 +886,7 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	}
-	kubeConfig, err := ad.GetKubeConfig(eid, clusterID)
+	kubeConfig, err := ad.GetKubeConfig(clusterID)
 	if err != nil {
 		return nil, bcode.ErrorKubeAPI
 	}
@@ -929,14 +913,14 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 }
 
 // UpdateInitWutongTaskStatus update init wutong task status
-func (c *ClusterUsecase) UpdateInitWutongTaskStatus(eid, taskID, status string) (*model.InitWutongTask, error) {
-	if err := c.InitWutongTaskRepo.UpdateStatus(eid, taskID, status); err != nil {
+func (c *ClusterUsecase) UpdateInitWutongTaskStatus(taskID, status string) (*model.InitWutongTask, error) {
+	if err := c.InitWutongTaskRepo.UpdateStatus(taskID, status); err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, bcode.NotFound
 		}
 		return nil, err
 	}
-	task, err := c.InitWutongTaskRepo.GetTask(eid, taskID)
+	task, err := c.InitWutongTaskRepo.GetTask(taskID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, bcode.NotFound
@@ -947,11 +931,11 @@ func (c *ClusterUsecase) UpdateInitWutongTaskStatus(eid, taskID, status string) 
 }
 
 // DeleteKubernetesCluster delete provider
-func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName string) error {
+func (c *ClusterUsecase) DeleteKubernetesCluster(clusterID, providerName string) error {
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(providerName)
 		if err != nil {
 			return bcode.ErrorNotFoundAccessKey
 		}
@@ -965,15 +949,15 @@ func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName st
 			return bcode.ErrorProviderNotSupport
 		}
 	}
-	return ad.DeleteCluster(eid, clusterID)
+	return ad.DeleteCluster(clusterID)
 }
 
 // GetCluster get cluster
-func (c *ClusterUsecase) GetCluster(providerName, eid, clusterID string) (*v1alpha1.Cluster, error) {
+func (c *ClusterUsecase) GetCluster(providerName, clusterID string) (*v1alpha1.Cluster, error) {
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if providerName != "rke" && providerName != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(providerName)
 		if err != nil {
 			return nil, bcode.ErrorNotFoundAccessKey
 		}
@@ -987,31 +971,30 @@ func (c *ClusterUsecase) GetCluster(providerName, eid, clusterID string) (*v1alp
 			return nil, bcode.ErrorProviderNotSupport
 		}
 	}
-	return ad.DescribeCluster(eid, clusterID)
+	return ad.DescribeCluster(clusterID)
 }
 
 // InstallCluster install cluster
-func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKubernetesTask, error) {
+func (c *ClusterUsecase) InstallCluster(clusterID string) (*model.CreateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		logrus.Errorf("TaskProducer is nil")
 		return nil, bcode.ServerErr
 	}
-	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
+	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(clusterID)
 	if err != nil {
 		return nil, err
 	}
 
 	// check if the last task is complete
-	if _, err := c.isLastTaskComplete(eid, clusterID); err != nil {
+	if _, err := c.isLastTaskComplete(clusterID); err != nil {
 		return nil, err
 	}
 
 	newTask := &model.CreateKubernetesTask{
-		Name:         cluster.Name,
-		Provider:     "rke",
-		EnterpriseID: eid,
-		TaskID:       uuidutil.NewUUID(),
-		ClusterID:    clusterID,
+		Name:      cluster.Name,
+		Provider:  "rke",
+		TaskID:    uuidutil.NewUUID(),
+		ClusterID: clusterID,
 	}
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
 		logrus.Errorf("create kubernetes task failure %s", err.Error())
@@ -1019,7 +1002,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 	}
 
 	// get rke config
-	rkeConfig, err := c.getRKEConfig(eid, cluster)
+	rkeConfig, err := c.getRKEConfig(cluster)
 	if err != nil {
 		return nil, err
 	}
@@ -1034,18 +1017,16 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 
 	//send task
 	taskReq := types.KubernetesConfigMessage{
-		EnterpriseID: eid,
-		TaskID:       newTask.TaskID,
+		TaskID: newTask.TaskID,
 		KubernetesConfig: &v1alpha1.KubernetesClusterConfig{
-			ClusterName:  newTask.Name,
-			Provider:     newTask.Provider,
-			EnterpriseID: eid,
-			RKEConfig:    rkeConfig,
+			ClusterName: newTask.Name,
+			Provider:    newTask.Provider,
+			RKEConfig:   rkeConfig,
 		}}
 	if err := c.TaskProducer.SendCreateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
 	} else {
-		if err := c.CreateKubernetesTaskRepo.UpdateStatus(eid, newTask.TaskID, "start"); err != nil {
+		if err := c.CreateKubernetesTaskRepo.UpdateStatus(newTask.TaskID, "start"); err != nil {
 			logrus.Errorf("update task status failure %s", err.Error())
 		}
 	}
@@ -1054,7 +1035,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 }
 
 // SetWutongClusterConfig set wutong cluster config
-func (c *ClusterUsecase) SetWutongClusterConfig(eid, clusterID, config string) error {
+func (c *ClusterUsecase) SetWutongClusterConfig(clusterID, config string) error {
 	var rbcc wutongv1alpha1.WutongCluster
 	if err := yaml.Unmarshal([]byte(config), &rbcc); err != nil {
 		logrus.Errorf("unmarshal wutong config failure %s", err.Error())
@@ -1062,14 +1043,13 @@ func (c *ClusterUsecase) SetWutongClusterConfig(eid, clusterID, config string) e
 	}
 	return c.WutongClusterConfigRepo.Create(
 		&model.WutongClusterConfig{
-			ClusterID:    clusterID,
-			Config:       config,
-			EnterpriseID: eid,
+			ClusterID: clusterID,
+			Config:    config,
 		})
 }
 
 // GetWutongClusterConfig get wutong cluster config
-func (c *ClusterUsecase) GetWutongClusterConfig(eid, clusterID string) (*wutongv1alpha1.WutongCluster, string) {
+func (c *ClusterUsecase) GetWutongClusterConfig(clusterID string) (*wutongv1alpha1.WutongCluster, string) {
 	rcc, _ := c.WutongClusterConfigRepo.Get(clusterID)
 	if rcc != nil {
 		var rbcc wutongv1alpha1.WutongCluster
@@ -1083,7 +1063,7 @@ func (c *ClusterUsecase) GetWutongClusterConfig(eid, clusterID string) (*wutongv
 }
 
 // UninstallWutongRegion uninstall wutong region
-func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) error {
+func (c *ClusterUsecase) UninstallWutongRegion(clusterID, provider string) error {
 	if os.Getenv("DISABLE_UNINSTALL_REGION") == "true" {
 		logrus.Info("uninstall wutong region is disable")
 		return nil
@@ -1091,7 +1071,7 @@ func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) 
 	var ad adaptor.WutongClusterAdaptor
 	var err error
 	if provider != "rke" && provider != "custom" {
-		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(provider, eid)
+		accessKey, err := c.CloudAccessKeyRepo.GetByProvider(provider)
 		if err != nil {
 			return bcode.ErrorNotFoundAccessKey
 		}
@@ -1105,7 +1085,7 @@ func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) 
 			return bcode.ErrorProviderNotSupport
 		}
 	}
-	kubeconfig, err := ad.GetKubeConfig(eid, clusterID)
+	kubeconfig, err := ad.GetKubeConfig(clusterID)
 	if err != nil {
 		return err
 	}
@@ -1115,7 +1095,7 @@ func (c *ClusterUsecase) UninstallWutongRegion(eid, clusterID, provider string) 
 		if err := rri.UninstallRegion(clusterID); err != nil {
 			logrus.Errorf("uninstall region %s failure %s", clusterID, err.Error())
 		}
-		if err := c.InitWutongTaskRepo.DeleteTask(eid, provider, clusterID); err != nil {
+		if err := c.InitWutongTaskRepo.DeleteTask(provider, clusterID); err != nil {
 			logrus.Errorf("delete region init task failure %s", err.Error())
 		}
 		logrus.Infof("complete uninstall cluster %s by provider %s", clusterID, provider)
@@ -1208,8 +1188,8 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes
 }
 
 // ListWutongComponents -
-func (c *ClusterUsecase) ListWutongComponents(ctx context.Context, eid, clusterID, providerName string) ([]*v1.WutongComponent, error) {
-	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+func (c *ClusterUsecase) ListWutongComponents(ctx context.Context, clusterID, providerName string) ([]*v1.WutongComponent, error) {
+	kubeConfig, err := c.GetKubeConfig(clusterID, providerName)
 	if err != nil {
 		return nil, err
 	}
@@ -1307,8 +1287,8 @@ func (c *ClusterUsecase) listWutongPods(ctx context.Context, kubeClient kubernet
 }
 
 // ListPodEvents -
-func (c *ClusterUsecase) ListPodEvents(ctx context.Context, eid, clusterID, providerName, podName string) ([]corev1.Event, error) {
-	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+func (c *ClusterUsecase) ListPodEvents(ctx context.Context, clusterID, providerName, podName string) ([]corev1.Event, error) {
+	kubeConfig, err := c.GetKubeConfig(clusterID, providerName)
 	if err != nil {
 		return nil, err
 	}
@@ -1340,7 +1320,7 @@ func (c *ClusterUsecase) syncTaskEvents(task *domain.ClusterTask, events []*mode
 		return nil
 	}
 
-	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.ProviderName)
+	kubeConfig, err := c.GetKubeConfig(task.ClusterID, task.ProviderName)
 	if err != nil {
 		return err
 	}
@@ -1401,7 +1381,7 @@ func (c *ClusterUsecase) getTaskClusterStatus(task *model.InitWutongTask) (strin
 		return "", nil
 	}
 
-	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.Provider)
+	kubeConfig, err := c.GetKubeConfig(task.ClusterID, task.Provider)
 	if err != nil {
 		return "", err
 	}

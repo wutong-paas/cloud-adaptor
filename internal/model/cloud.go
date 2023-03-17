@@ -18,16 +18,15 @@
 
 package model
 
-//CloudAccessKey cloud access key
+// CloudAccessKey cloud access key
 type CloudAccessKey struct {
 	Model
-	EnterpriseID string `gorm:"column:eid" json:"enterprise_id"`
 	ProviderName string `gorm:"column:provider_name" json:"provider_name"`
 	AccessKey    string `gorm:"column:access_key" json:"access_key"`
 	SecretKey    string `gorm:"column:secret_key" json:"secret_key"`
 }
 
-//CreateKubernetesTask create kubernetes task model
+// CreateKubernetesTask create kubernetes task model
 type CreateKubernetesTask struct {
 	Model
 	Name               string `gorm:"column:name" json:"name"`
@@ -35,45 +34,41 @@ type CreateKubernetesTask struct {
 	WorkerNum          int    `gorm:"column:worker_num" json:"workerNum"`
 	Provider           string `gorm:"column:provider_name" json:"providerName"`
 	Region             string `gorm:"column:region" json:"region"`
-	EnterpriseID       string `gorm:"column:eid" json:"eid"`
 	TaskID             string `gorm:"column:task_id" json:"taskID"`
 	Status             string `gorm:"column:status" json:"status"`
 	ClusterID          string `gorm:"column:cluster_id" json:"clusterID"`
 }
 
-//InitWutongTask init wutong task
+// InitWutongTask init wutong task
 type InitWutongTask struct {
 	Model
-	TaskID       string `gorm:"column:task_id" json:"taskID"`
-	ClusterID    string `gorm:"column:cluster_id" json:"clusterID"`
-	Provider     string `gorm:"column:provider_name" json:"providerName"`
-	EnterpriseID string `gorm:"column:eid" json:"eid"`
-	Status       string `gorm:"column:status" json:"status"`
+	TaskID    string `gorm:"column:task_id" json:"taskID"`
+	ClusterID string `gorm:"column:cluster_id" json:"clusterID"`
+	Provider  string `gorm:"column:provider_name" json:"providerName"`
+	Status    string `gorm:"column:status" json:"status"`
 }
 
-//UpdateKubernetesTask -
+// UpdateKubernetesTask -
 type UpdateKubernetesTask struct {
 	Model
 	TaskID    string `gorm:"column:task_id" json:"taskID"`
 	ClusterID string `gorm:"column:cluster_id;uniqueIndex:version;type:varchar(64)" json:"clusterID"`
 	// Version for optimistic lock
-	Version      int    `gorm:"column:version;uniqueIndex:version;" json:"version"`
-	Provider     string `gorm:"column:provider_name" json:"providerName"`
-	NodeNumber   int    `gorm:"column:node_number" json:"nodeNumber"`
-	EnterpriseID string `gorm:"column:eid" json:"eid"`
-	Status       string `gorm:"column:status" json:"status"`
+	Version    int    `gorm:"column:version;uniqueIndex:version;" json:"version"`
+	Provider   string `gorm:"column:provider_name" json:"providerName"`
+	NodeNumber int    `gorm:"column:node_number" json:"nodeNumber"`
+	Status     string `gorm:"column:status" json:"status"`
 }
 
-//TaskEvent task event
+// TaskEvent task event
 type TaskEvent struct {
 	Model
-	TaskID       string `gorm:"column:task_id" json:"taskID"`
-	EnterpriseID string `gorm:"column:eid" json:"eid"`
-	StepType     string `gorm:"column:step_type" json:"type"`
-	Message      string `gorm:"column:message;size:512" json:"message"`
-	Status       string `gorm:"column:status" json:"status"`
-	EventID      string `gorm:"column:event_id" json:"eventID"`
-	Reason       string `gorm:"column:reason" json:"reason"`
+	TaskID   string `gorm:"column:task_id" json:"taskID"`
+	StepType string `gorm:"column:step_type" json:"type"`
+	Message  string `gorm:"column:message;size:512" json:"message"`
+	Status   string `gorm:"column:status" json:"status"`
+	EventID  string `gorm:"column:event_id" json:"eventID"`
+	Reason   string `gorm:"column:reason" json:"reason"`
 }
 
 // BackupListModelData list all model data

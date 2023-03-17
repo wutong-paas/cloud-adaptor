@@ -23,9 +23,9 @@ var (
 	//ErrorProviderNotSupport provider not support
 	ErrorProviderNotSupport = newByMessage(400, 7001, "provider not support")
 	//ErrorNotFoundAccessKey not found access key
-	ErrorNotFoundAccessKey = newByMessage(400, 7002, "not found access key with this enterprise")
+	ErrorNotFoundAccessKey = newByMessage(400, 7002, "not found access key")
 	//ErrorNotSetAccessKey not set access key
-	ErrorNotSetAccessKey = newByMessage(200, 7003, "not found access key with this enterprise")
+	ErrorNotSetAccessKey = newByMessage(200, 7003, "not found access key")
 	//ErrorAccessKeyNotMatch access key and secret not match
 	ErrorAccessKeyNotMatch = newByMessage(403, 7004, "access key and secret not match")
 	//ErrorLastTaskNotComplete last task not complete

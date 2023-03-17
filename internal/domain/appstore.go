@@ -25,7 +25,6 @@ import (
 
 // AppStore -
 type AppStore struct {
-	EID          string
 	Name         string
 	URL          string
 	Branch       string
@@ -36,7 +35,7 @@ type AppStore struct {
 
 // Key -
 func (a *AppStore) Key() string {
-	return a.EID + a.Name
+	return a.Name
 }
 
 // Equals -

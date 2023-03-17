@@ -25,12 +25,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// TaskEventRepo enterprise task event
+// TaskEventRepo
 type TaskEventRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewTaskEventRepo new Enterprise repoo
+// NewTaskEventRepo
 func NewTaskEventRepo(db *gorm.DB) TaskEventRepository {
 	return &TaskEventRepo{DB: db}
 }
@@ -40,13 +40,13 @@ func (t *TaskEventRepo) Transaction(tx *gorm.DB) TaskEventRepository {
 	return &TaskEventRepo{DB: tx}
 }
 
-//Create create an event
+// Create create an event
 func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 	if len(te.Message) > 512 {
 		te.Message = te.Message[:512]
 	}
 	var old model.TaskEvent
-	if err := t.DB.Where("eid = ? and task_id=? and step_type=?", te.EnterpriseID, te.TaskID, te.StepType).Take(&old).Error; err != nil {
+	if err := t.DB.Where("task_id=? and step_type=?", te.TaskID, te.StepType).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if te.EventID == "" {
@@ -69,10 +69,10 @@ func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 	return nil
 }
 
-//ListEvent list task events
-func (t *TaskEventRepo) ListEvent(eid, taskID string) ([]*model.TaskEvent, error) {
+// ListEvent list task events
+func (t *TaskEventRepo) ListEvent(taskID string) ([]*model.TaskEvent, error) {
 	var list []*model.TaskEvent
-	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&list).Error; err != nil {
+	if err := t.DB.Where("task_id=?", taskID).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil

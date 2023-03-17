@@ -37,7 +37,7 @@ type tkeAdaptor struct {
 	tkeclient       *tke.Client
 }
 
-//Create create ack adaptor
+// Create create ack adaptor
 func Create(accessKeyID, accessKeySecret string) (adaptor.CloudAdaptor, error) {
 	credential := common.NewCredential(accessKeyID, accessKeySecret)
 	client, err := tke.NewClient(credential, "ap-guangzhou", profile.NewClientProfile())
@@ -58,11 +58,11 @@ func toString(s *string) string {
 	return *s
 }
 
-func (t *tkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	req := tke.NewDescribeClustersRequest()
 	res, err := t.tkeclient.DescribeClusters(req)
 	if err != nil {
-		return nil, fmt.Errorf("Query cluster list from tencent api failure %s", err.Error())
+		return nil, fmt.Errorf("query cluster list from tencent api failure %s", err.Error())
 	}
 	var clusters []*v1alpha1.Cluster
 	fmt.Printf("%+v", *res.Response.Clusters[0])
@@ -85,20 +85,20 @@ func (t *tkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 	return clusters, nil
 }
 
-func (t *tkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateCluster(string, v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
-//DeleteCluster delete cluster
-func (t *tkeAdaptor) DeleteCluster(eid, clusterID string) error {
+// DeleteCluster delete cluster
+func (t *tkeAdaptor) DeleteCluster(clusterID string) error {
 	return nil
 }
 
-func (t *tkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
+func (t *tkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
 	return nil, nil
 }
 
@@ -178,13 +178,13 @@ func (t *tkeAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) CreateWutongKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
-func (t *tkeAdaptor) GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
+func (t *tkeAdaptor) GetWutongInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig {
 	return nil
 }
 
-func (t *tkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }

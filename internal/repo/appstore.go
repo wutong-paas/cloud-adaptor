@@ -36,8 +36,8 @@ import (
 // AppStoreRepo -
 type AppStoreRepo interface {
 	Create(ctx context.Context, appStore *domain.AppStore) error
-	List(eid string) ([]*domain.AppStore, error)
-	Get(ctx context.Context, eid, name string) (*domain.AppStore, error)
+	List() ([]*domain.AppStore, error)
+	Get(ctx context.Context, name string) (*domain.AppStore, error)
 	Delete(appStore *domain.AppStore) error
 	Update(ctx context.Context, appStore *domain.AppStore) error
 	Resync(appStore *domain.AppStore)
@@ -67,7 +67,6 @@ func (a *appStoreRepo) Create(ctx context.Context, appStore *domain.AppStore) er
 	}
 
 	return a.appStoreDao.Create(&model.AppStore{
-		EID:      appStore.EID,
 		Name:     appStore.Name,
 		URL:      appStore.URL,
 		Branch:   appStore.Branch,
@@ -76,8 +75,8 @@ func (a *appStoreRepo) Create(ctx context.Context, appStore *domain.AppStore) er
 	})
 }
 
-func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
-	appStores, err := a.appStoreDao.List(eid)
+func (a *appStoreRepo) List() ([]*domain.AppStore, error) {
+	appStores, err := a.appStoreDao.List()
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +84,6 @@ func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
 	var stores []*domain.AppStore
 	for _, as := range appStores {
 		stores = append(stores, &domain.AppStore{
-			EID:      as.EID,
 			Name:     as.Name,
 			URL:      as.URL,
 			Branch:   as.Branch,
@@ -97,15 +95,14 @@ func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
 	return stores, nil
 }
 
-func (a *appStoreRepo) Get(ctx context.Context, eid, name string) (*domain.AppStore, error) {
-	as, err := a.appStoreDao.Get(eid, name)
+func (a *appStoreRepo) Get(ctx context.Context, name string) (*domain.AppStore, error) {
+	as, err := a.appStoreDao.Get(name)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: deduplicate the code below
 	appStore := &domain.AppStore{
-		EID:      as.EID,
 		Name:     as.Name,
 		URL:      as.URL,
 		Branch:   as.Branch,
@@ -126,7 +123,7 @@ func (a *appStoreRepo) Update(ctx context.Context, appStore *domain.AppStore) er
 		return err
 	}
 
-	as, err := a.appStoreDao.Get(appStore.EID, appStore.Name)
+	as, err := a.appStoreDao.Get(appStore.Name)
 	if err != nil {
 		return err
 	}
@@ -141,7 +138,7 @@ func (a *appStoreRepo) Update(ctx context.Context, appStore *domain.AppStore) er
 
 func (a *appStoreRepo) Delete(appStore *domain.AppStore) error {
 	// delete from database
-	if err := a.appStoreDao.Delete(appStore.EID, appStore.Name); err != nil && !errors.Is(err, bcode.ErrAppStoreNotFound) {
+	if err := a.appStoreDao.Delete(appStore.Name); err != nil && !errors.Is(err, bcode.ErrAppStoreNotFound) {
 		return err
 	}
 

@@ -23,59 +23,52 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/internal/adaptor/v1alpha1"
 )
 
-//InitWutongConfig init wutong region config
+// InitWutongConfig init wutong region config
 type InitWutongConfig struct {
-	EnterpriseID string `json:"enterprise_id"`
-	ClusterID    string `json:"cluster_id"`
-	AccessKey    string `json:"access_key"`
-	SecretKey    string `json:"secret_key"`
-	Provider     string `json:"provider"`
+	ClusterID string `json:"cluster_id"`
+	AccessKey string `json:"access_key"`
+	SecretKey string `json:"secret_key"`
+	Provider  string `json:"provider"`
 }
 
-//KubernetesConfigMessage nsq message
+// KubernetesConfigMessage nsq message
 type KubernetesConfigMessage struct {
-	EnterpriseID     string                            `json:"enterprise_id,omitempty"`
 	TaskID           string                            `json:"task_id,omitempty"`
 	KubernetesConfig *v1alpha1.KubernetesClusterConfig `json:"kubernetes_config,omitempty"`
 }
 
-//UpdateKubernetesConfigMessage -
+// UpdateKubernetesConfigMessage -
 type UpdateKubernetesConfigMessage struct {
-	EnterpriseID string                  `json:"enterprise_id,omitempty"`
-	TaskID       string                  `json:"task_id,omitempty"`
-	Config       *v1alpha1.ExpansionNode `json:"config,omitempty"`
+	TaskID string                  `json:"task_id,omitempty"`
+	Config *v1alpha1.ExpansionNode `json:"config,omitempty"`
 }
 
-//InitWutongConfigMessage nsq message
+// InitWutongConfigMessage nsq message
 type InitWutongConfigMessage struct {
-	EnterpriseID     string            `json:"enterprise_id,omitempty"`
 	TaskID           string            `json:"task_id,omitempty"`
 	InitWutongConfig *InitWutongConfig `json:"init_wutong_config,omitempty"`
 }
 
-//GetEvent get event
+// GetEvent get event
 func (i InitWutongConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
 	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
+		TaskID:  i.TaskID,
+		Message: m,
 	}
 }
 
-//GetEvent get event
+// GetEvent get event
 func (i KubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
 	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
+		TaskID:  i.TaskID,
+		Message: m,
 	}
 }
 
-//GetEvent get event
+// GetEvent get event
 func (i UpdateKubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
 	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
+		TaskID:  i.TaskID,
+		Message: m,
 	}
 }

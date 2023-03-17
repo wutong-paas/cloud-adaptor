@@ -59,7 +59,7 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 	}
 	c.rollback("Init", "cloud adaptor create success", "success")
 	// create cluster
-	adaptor.CreateWutongKubernetes(ctx, c.config.EnterpriseID, c.config, c.rollback)
+	adaptor.CreateWutongKubernetes(ctx, c.config, c.rollback)
 }
 
 // GetChan get message chan

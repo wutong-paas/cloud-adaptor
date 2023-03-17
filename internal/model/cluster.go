@@ -18,10 +18,9 @@
 
 package model
 
-//RKECluster RKE cluster
+// RKECluster RKE cluster
 type RKECluster struct {
 	Model
-	EnterpriseID      string `gorm:"column:eid" json:"eid"`
 	Name              string `gorm:"column:name" json:"name,omitempty"`
 	ClusterID         string `gorm:"column:clusterID" json:"clusterID,omitempty"`
 	APIURL            string `gorm:"column:apiURL;type:text" json:"apiURL,omitempty"`
@@ -38,20 +37,18 @@ type RKECluster struct {
 	RKEConfig string `gorm:"column:rkeConfig"`
 }
 
-//CustomCluster custom cluster
+// CustomCluster custom cluster
 type CustomCluster struct {
 	Model
-	EnterpriseID string `gorm:"column:eid" json:"eid"`
-	Name         string `gorm:"column:name" json:"name,omitempty"`
-	ClusterID    string `gorm:"column:clusterID" json:"clusterID,omitempty"`
-	KubeConfig   string `gorm:"column:kubeConfig;type:text" json:"kubeConfig,omitempty"`
-	EIP          string `gorm:"column:eip" json:"eip,omitempty"`
+	Name       string `gorm:"column:name" json:"name,omitempty"`
+	ClusterID  string `gorm:"column:clusterID" json:"clusterID,omitempty"`
+	KubeConfig string `gorm:"column:kubeConfig;type:text" json:"kubeConfig,omitempty"`
+	EIP        string `gorm:"column:eip" json:"eip,omitempty"`
 }
 
-//WutongClusterConfig wutong cluster config
+// WutongClusterConfig wutong cluster config
 type WutongClusterConfig struct {
 	Model
-	EnterpriseID string `gorm:"column:eid" json:"eid"`
-	ClusterID    string `gorm:"column:clusterID" json:"clusterID,omitempty"`
-	Config       string `gorm:"column:config;type:text" json:"config,omitempty"`
+	ClusterID string `gorm:"column:clusterID" json:"clusterID,omitempty"`
+	Config    string `gorm:"column:config;type:text" json:"config,omitempty"`
 }

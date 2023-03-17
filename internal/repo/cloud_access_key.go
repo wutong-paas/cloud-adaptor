@@ -23,20 +23,20 @@ import (
 	"gorm.io/gorm"
 )
 
-// CloudAccessKeyRepo enterprise cloud accesskey repo
+// CloudAccessKeyRepo
 type CloudAccessKeyRepo struct {
 	DB *gorm.DB
 }
 
-// NewCloudAccessKeyRepo new Enterprise repoo
+// NewCloudAccessKeyRepo
 func NewCloudAccessKeyRepo(db *gorm.DB) CloudAccesskeyRepository {
 	return &CloudAccessKeyRepo{DB: db}
 }
 
-//Create create, Keep an enterprise with the same provider have one accesskey
+// Create
 func (c *CloudAccessKeyRepo) Create(ck *model.CloudAccessKey) error {
 	var old model.CloudAccessKey
-	if err := c.DB.Where("eid = ? and provider_name=?", ck.EnterpriseID, ck.ProviderName).Take(&old).Error; err != nil {
+	if err := c.DB.Where("provider_name=?", ck.ProviderName).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -52,10 +52,10 @@ func (c *CloudAccessKeyRepo) Create(ck *model.CloudAccessKey) error {
 	return c.DB.Save(&old).Error
 }
 
-//GetByProviderAndEnterprise get
-func (c *CloudAccessKeyRepo) GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error) {
+// GetByProvider get
+func (c *CloudAccessKeyRepo) GetByProvider(providerName string) (*model.CloudAccessKey, error) {
 	var old model.CloudAccessKey
-	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Take(&old).Error; err != nil {
+	if err := c.DB.Where("provider_name=?", providerName).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

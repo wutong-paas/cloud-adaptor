@@ -3,13 +3,8 @@
         "id": "create_rke_cluster",
         "name": "创建RKE集群",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
-            "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                }
-            ],
+            "path": "/enterprise-server/api/v1/kclusters",
+            "params": [],
             "method": "POST",
             "body": {
                 "name": "A2",
@@ -39,13 +34,8 @@
         "id": "create_custom_cluster",
         "name": "创建自定义集群",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
-            "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                }
-            ],
+            "path": "/enterprise-server/api/v1/kclusters",
+            "params": [],
             "method": "POST",
             "body": {
                 "name": "C1",
@@ -65,13 +55,8 @@
         "id": "get_custom_cluster",
         "name": "get clusters",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
-            "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                }
-            ],
+            "path": "/enterprise-server/api/v1/kclusters",
+            "params": [],
             "query": {
                 "provider_name": "custom"
             },
@@ -89,13 +74,8 @@
         "id": "get_rke_cluster",
         "name": "get clusters",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
-            "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                }
-            ],
+            "path": "/enterprise-server/api/v1/kclusters",
+            "params": [],
             "query": {
                 "provider_name": "rke"
             },
@@ -113,13 +93,8 @@
         "id": "init_wutong_cluster",
         "name": "init wutong cluster",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/init-cluster",
-            "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                }
-            ],
+            "path": "/enterprise-server/api/v1/init-cluster",
+            "params": [],
             "method": "POST",
             "body": {
                 "providerName": "custom",
@@ -139,12 +114,8 @@
         "id": "init_wutong_cluster_status",
         "name": "init wutong cluster",
         "request": {
-            "path": "/enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID}",
+            "path": "/enterprise-server/api/v1/init-task/{clusterID}",
             "params": [
-                {
-                    "key": "eid",
-                    "value": "1234567890"
-                },
                 {
                     "key": "clusterID",
                     "value": "80838452c101495ab056ee71d61e82e0"

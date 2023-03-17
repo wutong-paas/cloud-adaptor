@@ -31,7 +31,7 @@ import (
 
 func TestCreateCluster(t *testing.T) {
 	rke := &rkeAdaptor{}
-	rke.CreateWutongKubernetes(context.TODO(), "test", &v1alpha1.KubernetesClusterConfig{
+	rke.CreateWutongKubernetes(context.TODO(), &v1alpha1.KubernetesClusterConfig{
 		Nodes: []v1alpha1.ConfigNode{
 			{
 				IP:    "192.168.56.104",
@@ -57,7 +57,7 @@ func TestExpansionNode(t *testing.T) {
 	rke := &rkeAdaptor{
 		Repo: repo.NewRKEClusterRepo(datastore.NewDB()),
 	}
-	rke.ExpansionNode(context.TODO(), "test", &v1alpha1.ExpansionNode{
+	rke.ExpansionNode(context.TODO(), &v1alpha1.ExpansionNode{
 		ClusterID: "local-104",
 		Nodes: v1alpha1.NodeList{
 			{
