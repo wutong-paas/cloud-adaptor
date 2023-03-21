@@ -26,20 +26,21 @@ FROM --platform=$TARGETPLATFORM wutongpaas/alpine:3.15
 ARG TARGETOS TARGETARCH TARGETPLATFORM
 WORKDIR /app
 RUN apk add --update apache2-utils && \
-    rm -rf /var/cache/apk/* && \
-    mkdir /app/data && \
-    if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
-      wget https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/arm/helm-arm64 && chmod +x helm-arm64 && mv helm-arm64 /usr/local/bin/helm; \
-    else \
-      wget https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/amd/helm && chmod +x helm && mv helm /usr/local/bin/helm; \
-    fi && \
-    helm repo add wutong https://wutong-paas.github.io/helm-charts && helm repo update
+  rm -rf /var/cache/apk/* && \
+  mkdir /app/data && \
+  if [ "${TARGETPLATFORM}" = "linux/arm64" ]; then \
+  wget https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/arm/helm-arm64 && chmod +x helm-arm64 && mv helm-arm64 /usr/local/bin/helm; \
+  else \
+  wget https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/amd/helm && chmod +x helm && mv helm /usr/local/bin/helm; \
+  fi && \
+  helm repo add wutong https://wutong-paas.github.io/helm-charts && helm repo update
 ENV TZ=Asia/Shanghai
 ENV DB_PATH=/app/data/cloudadaptor
 ENV CONFIG_DIR=/app/data/cloudadaptor
 ENV HELM_PATH=/usr/local/bin/helm
 ENV MYSQL_DB=console
 
+COPY ./chart /app/data/helm-charts/wutong-operator
 COPY --from=builder /cloud-adaptor .
 
 VOLUME /app/data

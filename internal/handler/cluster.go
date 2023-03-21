@@ -614,7 +614,7 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #  ## Specifies shared storage provider.
 #  wutongVolumeSpecRWX:
 #	 imageRepository: ""
-#	 storageClassName: glusterfs-simple
+#	 storageClassName: nfs
 #  ## Specifies the db connection info of region.
 #  regionDatabase:
 #	 host: 127.0.0.1

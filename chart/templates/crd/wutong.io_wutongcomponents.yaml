@@ -19,7 +19,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: WutongComponent is the Schema for the wutongcomponents API
+        description: WutongComponent is the Schema for the WutongComponents API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -1676,7 +1676,7 @@ spec:
                 description: Current state of wutong component.
                 items:
                   description: WutongComponentCondition contains details for the current
-                    condition of this wutongcomponent.
+                    condition of this WutongComponent.
                   properties:
                     lastTransitionTime:
                       description: Last time the condition transitioned from one status

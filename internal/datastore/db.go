@@ -20,9 +20,6 @@ package datastore
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"path"
 	"time"
 
 	"github.com/go-sql-driver/mysql"
@@ -30,26 +27,11 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/cmd/cloud-adaptor/config"
 	"github.com/wutong-paas/cloud-adaptor/internal/model"
 	gmysql "gorm.io/driver/mysql"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
-var databaseType = "sqlite3"
-var databasePath = "./data/db"
 var gdb *gorm.DB
-
-func init() {
-
-	if os.Getenv("DB_TYPE") != "" {
-		databaseType = os.Getenv("DB_TYPE")
-	}
-
-	if os.Getenv("DB_PATH") != "" {
-		databasePath = os.Getenv("DB_PATH")
-	}
-
-}
 
 // NewDB creates a new gorm.DB
 func NewDB() *gorm.DB {
@@ -60,41 +42,31 @@ func NewDB() *gorm.DB {
 		},
 	}
 
-	if databaseType == "mysql" {
-		mySQLConfig := &mysql.Config{
-			User:                 config.C.DB.User,
-			Passwd:               config.C.DB.Pass,
-			Net:                  "tcp",
-			Addr:                 fmt.Sprintf("%s:%d", config.C.DB.Host, config.C.DB.Port),
-			DBName:               config.C.DB.Name,
-			AllowNativePasswords: true,
-			ParseTime:            true,
-			Loc:                  time.Local,
-			Params:               map[string]string{"charset": "utf8"},
-			Timeout:              time.Second * 5,
-		}
+	mySQLConfig := &mysql.Config{
+		User:                 config.C.DB.User,
+		Passwd:               config.C.DB.Pass,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%d", config.C.DB.Host, config.C.DB.Port),
+		DBName:               config.C.DB.Name,
+		AllowNativePasswords: true,
+		ParseTime:            true,
+		Loc:                  time.Local,
+		Params:               map[string]string{"charset": "utf8"},
+		Timeout:              time.Second * 5,
+	}
 
-		retry := 10
-		for retry > 0 {
-			var err error
-
-			db, err = gorm.Open(gmysql.Open(mySQLConfig.FormatDSN()), gormCfg)
-			if err != nil {
-				logrus.Errorf("open db connection failure %s, will retry", err.Error())
-				time.Sleep(time.Second * 3)
-				retry--
-				continue
-			}
-			break
-		}
-	} else {
-		_ = os.MkdirAll(databasePath, 0755)
+	retry := 10
+	for retry > 0 {
 		var err error
-		databaseFilePath := path.Join(databasePath, "db.sqlite3")
-		db, err = gorm.Open(sqlite.Open(databaseFilePath), gormCfg)
+
+		db, err = gorm.Open(gmysql.Open(mySQLConfig.FormatDSN()), gormCfg)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Errorf("open db connection failure %s, will retry", err.Error())
+			time.Sleep(time.Second * 3)
+			retry--
+			continue
 		}
+		break
 	}
 	gdb = db
 	return db
