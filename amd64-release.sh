@@ -1,7 +1,7 @@
 #! /bin/bash
 
 export NAMESPACE=wutong-adaptor
-export VERSION=v1.2.0-stable
+export VERSION=v1.3.0-amd64
 
 CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/cloud-adaptor ./cmd/cloud-adaptor
 docker build . -t swr.cn-southwest-2.myhuaweicloud.com/wutong/${NAMESPACE}:${VERSION} -f Dockerfile
