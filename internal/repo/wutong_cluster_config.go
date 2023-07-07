@@ -23,17 +23,17 @@ import (
 	"gorm.io/gorm"
 )
 
-// WutongClusterConfigRepo enterprise task event
+// WutongClusterConfigRepo
 type WutongClusterConfigRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewWutongClusterConfigRepo new Enterprise repoo
+// NewWutongClusterConfigRepo
 func NewWutongClusterConfigRepo(db *gorm.DB) WutongClusterConfigRepository {
 	return &WutongClusterConfigRepo{DB: db}
 }
 
-//Create create an event
+// Create create an event
 func (t *WutongClusterConfigRepo) Create(te *model.WutongClusterConfig) error {
 	var old model.WutongClusterConfig
 	if err := t.DB.Where("clusterID=?", te.ClusterID).Take(&old).Error; err != nil {
@@ -49,7 +49,7 @@ func (t *WutongClusterConfigRepo) Create(te *model.WutongClusterConfig) error {
 	return t.DB.Save(old).Error
 }
 
-//Get -
+// Get -
 func (t *WutongClusterConfigRepo) Get(clusterID string) (*model.WutongClusterConfig, error) {
 	var rcc model.WutongClusterConfig
 	if err := t.DB.Where("clusterID=?", clusterID).Take(&rcc).Error; err != nil {

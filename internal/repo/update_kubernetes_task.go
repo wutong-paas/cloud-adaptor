@@ -28,12 +28,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// UpdateKubernetesTaskRepo enterprise create kubernetes task
+// UpdateKubernetesTaskRepo
 type UpdateKubernetesTaskRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewUpdateKubernetesTaskRepo new Enterprise repoo
+// NewUpdateKubernetesTaskRepo
 func NewUpdateKubernetesTaskRepo(db *gorm.DB) UpdateKubernetesTaskRepository {
 	return &UpdateKubernetesTaskRepo{DB: db}
 }
@@ -43,13 +43,13 @@ func (c *UpdateKubernetesTaskRepo) Transaction(tx *gorm.DB) UpdateKubernetesTask
 	return &UpdateKubernetesTaskRepo{DB: tx}
 }
 
-//Create create a task
+// Create create a task
 func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error {
 	var old model.UpdateKubernetesTask
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
-	if err := c.DB.Where("eid = ? and task_id=? and cluster_id=?", ck.EnterpriseID, ck.TaskID, ck.ClusterID).Take(&old).Error; err != nil {
+	if err := c.DB.Where("task_id=? and cluster_id=?", ck.TaskID, ck.ClusterID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -65,37 +65,37 @@ func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error 
 	return fmt.Errorf("task is exit")
 }
 
-//GetTaskByClusterID get cluster task
-func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error) {
+// GetTaskByClusterID get cluster task
+func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(clusterID string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Where("eid = ? and cluster_id=?", eid, clusterID).Last(&old).Error; err != nil {
+	if err := c.DB.Where("cluster_id=?", clusterID).Last(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
 }
 
-//UpdateStatus update status
-func (c *UpdateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
+// UpdateStatus update status
+func (c *UpdateKubernetesTaskRepo) UpdateStatus(taskID string, status string) error {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Model(&old).Where("eid = ? and task_id=?", eid, taskID).Update("status", status).Error; err != nil {
+	if err := c.DB.Model(&old).Where("task_id=?", taskID).Update("status", status).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-//GetTask get task
-func (c *UpdateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error) {
+// GetTask get task
+func (c *UpdateKubernetesTaskRepo) GetTask(taskID string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&old).Error; err != nil {
+	if err := c.DB.Where("task_id=?", taskID).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
 }
 
-//GetLastTask get last task
-func (c *UpdateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error) {
+// GetLastTask get last task
+func (c *UpdateKubernetesTaskRepo) GetLastTask(providerName string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
+	if err := c.DB.Where("provider_name=?", providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

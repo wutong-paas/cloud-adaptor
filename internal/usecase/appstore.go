@@ -43,8 +43,8 @@ func (a *AppStoreUsecase) Create(ctx context.Context, appStore *domain.AppStore)
 }
 
 // List -
-func (a *AppStoreUsecase) List(ctx context.Context, eid string) ([]*domain.AppStore, error) {
-	return a.appStoreRepo.List(eid)
+func (a *AppStoreUsecase) List(ctx context.Context) ([]*domain.AppStore, error) {
+	return a.appStoreRepo.List()
 }
 
 // Update -

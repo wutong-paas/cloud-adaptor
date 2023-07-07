@@ -132,22 +132,9 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 		return err
 	}
 
-	// helm repo update
-	repoUpdateCmd := exec.Cmd{
-		Path:   helmPath,
-		Args:   []string{helmPath, "repo", "update"},
-		Stdout: os.Stdout,
-		Stdin:  os.Stdin,
-		Stderr: os.Stderr,
-	}
-
-	if err := repoUpdateCmd.Run(); err != nil {
-		logrus.Warningf("update wutong helm repository failed: %s", err.Error())
-	}
-
 	// helm create wutong operator chart
 	defaultArgs := []string{
-		helmPath, "install", "wutong-operator", "wutong/wutong-operator", "-n", r.namespace,
+		helmPath, "install", "wutong-operator", "/app/data/helm-charts/wutong-operator", "-n", r.namespace,
 		"--kubeconfig", kubeconfigFileName,
 		"--set", "operator.image.name=" + fmt.Sprintf("%s/wutong-operator", version.InstallImageRepo),
 		"--set", "operator.image.tag=" + imageFitArch(version.OperatorVersion, r.wutongCluster.Spec.Arch)}

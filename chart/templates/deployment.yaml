@@ -32,7 +32,7 @@ spec:
             - --zap-log-level={{ .Values.operator.logLevel }}
           image: {{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
-          name: {{ .Values.operator.name }}
+          name: operator
           securityContext:
             allowPrivilegeEscalation: false
           livenessProbe:

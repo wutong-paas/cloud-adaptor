@@ -19,7 +19,7 @@ spec:
   - name: v1alpha1
     schema:
       openAPIV3Schema:
-        description: WutongCluster is the Schema for the wutongclusters API
+        description: WutongCluster is the Schema for the WutongClusters API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -36,6 +36,10 @@ spec:
           spec:
             description: WutongClusterSpec defines the desired state of WutongCluster
             properties:
+              arch:
+                description: Arch is the server architecture of the cluster. It's
+                  ptional, default is amd64, support arm64
+                type: string
               cacheMode:
                 type: string
               ciVersion:
@@ -49,8 +53,7 @@ spec:
                 type: boolean
               etcdConfig:
                 description: the etcd connection information that wutong component
-                  will be used. wutong-operator will create one if EtcdConfig is
-                  empty
+                  will be used. wutong-operator will create one if EtcdConfig is empty
                 properties:
                   endpoints:
                     description: Endpoints is a list of URLs.
@@ -86,6 +89,10 @@ spec:
                 description: define install wutong version, This is usually image
                   tag
                 type: string
+              lightweight:
+                description: Light weight is a mode that only install the necessary
+                  components of wutong
+                type: boolean
               nodesForChaos:
                 description: Specify the nodes where the wt-gateway will running.
                 items:
@@ -112,6 +119,60 @@ spec:
                       type: string
                   type: object
                 type: array
+              optionalComponent:
+                description: Optional components
+                properties:
+                  metrics-server:
+                    type: boolean
+                  wt-eventlog:
+                    type: boolean
+                  wt-gateway:
+                    type: boolean
+                  wt-monitor:
+                    type: boolean
+                  wt-node:
+                    type: boolean
+                  wt-resource-proxy:
+                    type: boolean
+                  wt-webcli:
+                    type: boolean
+                type: object
+              regionDatabase:
+                description: the region database information that wutong component
+                  will be used. wutong-operator will create one if DBInfo is empty
+                properties:
+                  host:
+                    type: string
+                  name:
+                    type: string
+                  password:
+                    type: string
+                  port:
+                    type: integer
+                  username:
+                    type: string
+                type: object
+              sentinelImage:
+                description: SentinelImage is the image for wutong operator sentinel
+                type: string
+              suffixHTTPHost:
+                description: Suffix of component default domain name
+                type: string
+              uiDatabase:
+                description: the ui database information that wutong component will
+                  be used. wutong-operator will create one if DBInfo is empty
+                properties:
+                  host:
+                    type: string
+                  name:
+                    type: string
+                  password:
+                    type: string
+                  port:
+                    type: integer
+                  username:
+                    type: string
+                type: object
               wutongImageRepository:
                 description: Repository of each Wutong component image, eg. docker.io/wutong.
                 type: string
@@ -281,42 +342,6 @@ spec:
                 required:
                 - imageRepository
                 type: object
-              regionDatabase:
-                description: the region database information that wutong component
-                  will be used. wutong-operator will create one if DBInfo is empty
-                properties:
-                  host:
-                    type: string
-                  name:
-                    type: string
-                  password:
-                    type: string
-                  port:
-                    type: integer
-                  username:
-                    type: string
-                type: object
-              sentinelImage:
-                description: SentinelImage is the image for wutong operator sentinel
-                type: string
-              suffixHTTPHost:
-                description: Suffix of component default domain name
-                type: string
-              uiDatabase:
-                description: the ui database information that wutong component will
-                  be used. wutong-operator will create one if DBInfo is empty
-                properties:
-                  host:
-                    type: string
-                  name:
-                    type: string
-                  password:
-                    type: string
-                  port:
-                    type: integer
-                  username:
-                    type: string
-                type: object
             required:
             - suffixHTTPHost
             type: object
@@ -359,7 +384,7 @@ spec:
               conditions:
                 items:
                   description: WutongClusterCondition contains condition information
-                    for wutongcluster.
+                    for WutongCluster.
                   properties:
                     lastHeartbeatTime:
                       description: Last time we got an update on a given condition.
@@ -389,8 +414,8 @@ spec:
                   type: object
                 type: array
               gatewayAvailableNodes:
-                description: holds some recommend nodes available for wt-gateway
-                  to run.
+                description: holds some recommend nodes available for wt-gateway to
+                  run.
                 properties:
                   masterNodes:
                     description: A list of kubernetes master nodes.

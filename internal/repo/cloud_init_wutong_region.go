@@ -28,12 +28,12 @@ import (
 	"gorm.io/gorm"
 )
 
-// InitWutongRegionTaskRepo enterprise create kubernetes task
+// InitWutongRegionTaskRepo
 type InitWutongRegionTaskRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewInitWutongRegionTaskRepo new Enterprise repoo
+// NewInitWutongRegionTaskRepo
 func NewInitWutongRegionTaskRepo(db *gorm.DB) InitWutongTaskRepository {
 	return &InitWutongRegionTaskRepo{DB: db}
 }
@@ -43,13 +43,13 @@ func (c *InitWutongRegionTaskRepo) Transaction(tx *gorm.DB) InitWutongTaskReposi
 	return &InitWutongRegionTaskRepo{DB: tx}
 }
 
-//Create create a task
+// Create create a task
 func (c *InitWutongRegionTaskRepo) Create(ck *model.InitWutongTask) error {
 	var old model.InitWutongTask
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
-	if err := c.DB.Where("eid = ? and task_id=? and cluster_id=?", ck.EnterpriseID, ck.TaskID, ck.ClusterID).Take(&old).Error; err != nil {
+	if err := c.DB.Where("task_id=? and cluster_id=?", ck.TaskID, ck.ClusterID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -62,10 +62,10 @@ func (c *InitWutongRegionTaskRepo) Create(ck *model.InitWutongTask) error {
 	return fmt.Errorf("task is exit")
 }
 
-//GetTaskByClusterID get cluster task
-func (c *InitWutongRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitWutongTask, error) {
+// GetTaskByClusterID get cluster task
+func (c *InitWutongRegionTaskRepo) GetTaskByClusterID(providerName, clusterID string) (*model.InitWutongTask, error) {
 	var old model.InitWutongTask
-	if err := c.DB.Where("eid=? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
+	if err := c.DB.Where("provider_name=? and cluster_id=?", providerName, clusterID).Last(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(bcode.ErrInitWutongTaskNotFound, "get init wutong task")
 		}
@@ -74,37 +74,37 @@ func (c *InitWutongRegionTaskRepo) GetTaskByClusterID(eid string, providerName, 
 	return &old, nil
 }
 
-//UpdateStatus update status
-func (c *InitWutongRegionTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
+// UpdateStatus update status
+func (c *InitWutongRegionTaskRepo) UpdateStatus(taskID string, status string) error {
 	var old model.InitWutongTask
-	if err := c.DB.Model(&old).Where("eid = ? and task_id=?", eid, taskID).Update("status", status).Error; err != nil {
+	if err := c.DB.Model(&old).Where("task_id=?", taskID).Update("status", status).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-//GetTask get task
-func (c *InitWutongRegionTaskRepo) GetTask(eid string, taskID string) (*model.InitWutongTask, error) {
+// GetTask get task
+func (c *InitWutongRegionTaskRepo) GetTask(taskID string) (*model.InitWutongTask, error) {
 	var old model.InitWutongTask
-	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&old).Error; err != nil {
+	if err := c.DB.Where("task_id=?", taskID).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
 }
 
-//GetTaskRunningLists get not complete tasks
-func (c *InitWutongRegionTaskRepo) GetTaskRunningLists(eid string) ([]*model.InitWutongTask, error) {
+// GetTaskRunningLists get not complete tasks
+func (c *InitWutongRegionTaskRepo) GetTaskRunningLists() ([]*model.InitWutongTask, error) {
 	var list []*model.InitWutongTask
-	if err := c.DB.Where("eid = ? and status != ?", eid, "complete").Find(&list).Error; err != nil {
+	if err := c.DB.Where("status != ?", "complete").Find(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil
 }
 
-//DeleteTask -
-func (c *InitWutongRegionTaskRepo) DeleteTask(eid string, providerName, clusterID string) error {
+// DeleteTask -
+func (c *InitWutongRegionTaskRepo) DeleteTask(providerName, clusterID string) error {
 	var old model.InitWutongTask
-	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Delete(&old).Error; err != nil {
+	if err := c.DB.Where("provider_name=? and cluster_id=?", providerName, clusterID).Delete(&old).Error; err != nil {
 		return err
 	}
 	return nil

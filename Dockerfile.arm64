@@ -11,6 +11,7 @@ ENV CONFIG_DIR=/app/data/cloudadaptor
 ENV HELM_PATH=/usr/local/bin/helm
 ENV MYSQL_DB=console
 
+COPY ./chart /app/data/helm-charts/wutong-operator
 COPY ./bin/cloud-adaptor .
 
 VOLUME /app/data

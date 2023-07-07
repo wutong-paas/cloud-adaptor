@@ -62,8 +62,8 @@ func Create() (adaptor.WutongClusterAdaptor, error) {
 	}, nil
 }
 
-func (r *rkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
-	rkeclusters, err := r.Repo.ListCluster(eid)
+func (r *rkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
+	rkeclusters, err := r.Repo.ListCluster()
 	if err != nil {
 		return nil, fmt.Errorf("get cluster meta info failure %s", err.Error())
 	}
@@ -80,24 +80,23 @@ func (r *rkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 	return re, nil
 }
 
-func (r *rkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
-	rkecluster, err := r.Repo.GetCluster(eid, clusterID)
+func (r *rkeAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
+	rkecluster, err := r.Repo.GetCluster(clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("get cluster %s meta info failure %s", clusterID, err.Error())
 	}
 	return converClusterMeta(rkecluster), nil
 }
 
-func (r *rkeAdaptor) DeleteCluster(eid, clusterID string) error {
-	cluster, _ := r.DescribeCluster(eid, clusterID)
+func (r *rkeAdaptor) DeleteCluster(clusterID string) error {
+	cluster, _ := r.DescribeCluster(clusterID)
 	if cluster != nil && cluster.WutongInit {
 		return bcode.ErrClusterNotAllowDelete
 	}
-	return r.Repo.DeleteCluster(eid, clusterID)
+	return r.Repo.DeleteCluster(clusterID)
 }
 
 func (r *rkeAdaptor) GetWutongInitConfig(
-	eid string,
 	cluster *v1alpha1.Cluster,
 	gateway, chaos []*wutongv1alpha1.K8sNode,
 	rollback func(step, message, status string),
@@ -129,9 +128,9 @@ func (r *rkeAdaptor) GetWutongInitConfig(
 	}
 }
 
-func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("InitClusterConfig", "", "start")
-	rkecluster, err := r.Repo.GetCluster(eid, config.ClusterName)
+	rkecluster, err := r.Repo.GetCluster(config.ClusterName)
 	if err != nil {
 		logrus.Errorf("get cluster meta info failure %s", err.Error())
 		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
@@ -177,7 +176,7 @@ func (r *rkeAdaptor) CreateWutongKubernetes(ctx context.Context, eid string, con
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, config.EnterpriseID, config.ClusterName)
+	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, config.ClusterName)
 
 	if rkecluster.Stats == v1alpha1.InstallFailed {
 		//TODO: This action will result in an inconsistency with the configuration of the node
@@ -337,7 +336,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 	return cluster
 }
 
-func (r *rkeAdaptor) CreateCluster(eid string, config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (r *rkeAdaptor) CreateCluster(config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	rkeConfig, ok := config.(*v3.RancherKubernetesEngineConfig)
 	if !ok {
 		return nil, fmt.Errorf("cluster config is not RancherKubernetesEngineConfig")
@@ -545,8 +544,8 @@ func checkAllIncluded(cluster *cluster.Cluster) error {
 	return nil
 }
 
-func (r *rkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
-	rkecluster, err := r.Repo.GetCluster(eid, clusterID)
+func (r *rkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
+	rkecluster, err := r.Repo.GetCluster(clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("get cluster meta info failure %s", err.Error())
 	}
@@ -556,10 +555,10 @@ func (r *rkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig,
 	return &v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}, nil
 }
 
-func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	//Check cluster local state file, if not exist, not support expansion node
 	rollback("InitClusterConfig", "", "start")
-	rkecluster, err := r.Repo.GetCluster(eid, en.ClusterID)
+	rkecluster, err := r.Repo.GetCluster(en.ClusterID)
 	if err != nil {
 		logrus.Errorf("get cluster meta info failure %s", err.Error())
 		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
@@ -574,12 +573,12 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, rkecluster.EnterpriseID, rkecluster.Name)
+	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
 
 	_ = os.MkdirAll(clusterStatPath, 0755)
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
 
-	clusterStatFile := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.rkestate", configDir, rkecluster.EnterpriseID, rkecluster.Name)
+	clusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
 	oldClusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
 	_, err = os.Stat(clusterStatFile)
 	if err != nil {
@@ -645,6 +644,6 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 		logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
 	}
 	rollback("UpdateKubernetes", "", "success")
-	clu, _ := r.DescribeCluster(eid, rkecluster.ClusterID)
+	clu, _ := r.DescribeCluster(rkecluster.ClusterID)
 	return clu
 }

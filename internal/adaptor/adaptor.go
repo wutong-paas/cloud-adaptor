@@ -31,7 +31,7 @@ var (
 	ErrNotSupportRDS = fmt.Errorf("not support rds")
 )
 
-//CloudAdaptor cloud adaptor interface
+// CloudAdaptor cloud adaptor interface
 type CloudAdaptor interface {
 	WutongClusterAdaptor
 	VPCList(regionID string) ([]*v1alpha1.VPC, error)
@@ -46,19 +46,19 @@ type CloudAdaptor interface {
 	CreateDB(*v1alpha1.Database) error
 }
 
-//KubernetesClusterAdaptor -
+// KubernetesClusterAdaptor -
 type KubernetesClusterAdaptor interface {
-	ClusterList(eid string) ([]*v1alpha1.Cluster, error)
-	DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error)
-	CreateCluster(eid string, config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error)
-	GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error)
-	DeleteCluster(eid, clusterID string) error
-	ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster
+	ClusterList() ([]*v1alpha1.Cluster, error)
+	DescribeCluster(clusterID string) (*v1alpha1.Cluster, error)
+	CreateCluster(config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error)
+	GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error)
+	DeleteCluster(clusterID string) error
+	ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster
 }
 
-//WutongClusterAdaptor wutong init adaptor
+// WutongClusterAdaptor wutong init adaptor
 type WutongClusterAdaptor interface {
 	KubernetesClusterAdaptor
-	CreateWutongKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster
-	GetWutongInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig
+	CreateWutongKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster
+	GetWutongInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*wutongv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.WutongInitConfig
 }

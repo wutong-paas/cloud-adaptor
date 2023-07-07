@@ -39,7 +39,7 @@ type ClusterHandler struct {
 	cluster *usecase.ClusterUsecase
 }
 
-// NewClusterHandler new enterprise handler
+// NewClusterHandler
 func NewClusterHandler(clusterUsecase *usecase.ClusterUsecase) *ClusterHandler {
 	return &ClusterHandler{
 		cluster: clusterUsecase,
@@ -48,7 +48,7 @@ func NewClusterHandler(clusterUsecase *usecase.ClusterUsecase) *ClusterHandler {
 
 // ListKubernetesClusters returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters cloud kcluster
+// swagger:route GET /enterprise-server/api/v1/kclusters cloud kcluster
 //
 // # ListKubernetesCluster
 //
@@ -69,8 +69,7 @@ func (e *ClusterHandler) ListKubernetesClusters(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
-	clusters, err := e.cluster.ListKubernetesCluster(eid, req)
+	clusters, err := e.cluster.ListKubernetesCluster(req)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -80,7 +79,7 @@ func (e *ClusterHandler) ListKubernetesClusters(ctx *gin.Context) {
 
 // AddKubernetesCluster returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters cloud kcluster
+// swagger:route GET /enterprise-server/api/v1/kclusters cloud kcluster
 //
 // # CreateKubernetesReq
 //
@@ -112,8 +111,7 @@ func (e *ClusterHandler) AddKubernetesCluster(ctx *gin.Context) {
 			return
 		}
 	}
-	eid := ctx.Param("eid")
-	task, err := e.cluster.CreateKubernetesCluster(eid, req)
+	task, err := e.cluster.CreateKubernetesCluster(req)
 	if err != nil {
 		ginutil.JSON(ctx, task, err)
 		return
@@ -128,11 +126,10 @@ func (e *ClusterHandler) AddKubernetesCluster(ctx *gin.Context) {
 // @ID updateKubernetesCluster
 // @Accept  json
 // @Produce  json
-// @Param eid path string true "the enterprise id"
 // @Param updateKubernetesReq body v1.UpdateKubernetesReq true "."
 // @Success 200 {object} v1.UpdateKubernetesTask
 // @Failure 500 {object} ginutil.Result
-// @Router /api/v1/enterprises/:eid/update-cluster [post]
+// @Router /api/v1/update-cluster [post]
 func (e *ClusterHandler) UpdateKubernetesCluster(ctx *gin.Context) {
 	var req v1.UpdateKubernetesReq
 	if err := ginutil.ShouldBindJSON(ctx, &req); err != nil {
@@ -145,8 +142,7 @@ func (e *ClusterHandler) UpdateKubernetesCluster(ctx *gin.Context) {
 			return
 		}
 	}
-	eid := ctx.Param("eid")
-	task, err := e.cluster.UpdateKubernetesCluster(eid, req)
+	task, err := e.cluster.UpdateKubernetesCluster(req)
 	if err != nil {
 		ginutil.JSONv2(ctx, task, err)
 		return
@@ -161,16 +157,14 @@ func (e *ClusterHandler) UpdateKubernetesCluster(ctx *gin.Context) {
 // @ID getUpdateKubernetesTask
 // @Accept  json
 // @Produce  json
-// @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the cluster id"
 // @Success 200 {object} v1.UpdateKubernetesTask
 // @Failure 500 {object} ginutil.Result
-// @Router /api/v1/enterprises/:eid/update-cluster/:clusterID [get]
+// @Router /api/v1/update-cluster/:clusterID [get]
 func (e *ClusterHandler) GetUpdateKubernetesTask(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
 	providerName := ctx.Query("provider_name")
-	re, err := e.cluster.GetUpdateKubernetesTask(eid, clusterID, providerName)
+	re, err := e.cluster.GetUpdateKubernetesTask(clusterID, providerName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -181,7 +175,7 @@ func (e *ClusterHandler) GetUpdateKubernetesTask(ctx *gin.Context) {
 
 // DeleteKubernetesCluster returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID} cloud kcluster
+// swagger:route GET /enterprise-server/api/v1kclusters/{clusterID} cloud kcluster
 //
 // # DeleteKubernetesClusterReq
 //
@@ -202,9 +196,8 @@ func (e *ClusterHandler) DeleteKubernetesCluster(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	err := e.cluster.DeleteKubernetesCluster(eid, clusterID, req.ProviderName)
+	err := e.cluster.DeleteKubernetesCluster(clusterID, req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -214,7 +207,7 @@ func (e *ClusterHandler) DeleteKubernetesCluster(ctx *gin.Context) {
 
 // GetLastAddKubernetesClusterTask returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/last-ck-task cloud kcluster
+// swagger:route GET /enterprise-server/api/v1last-ck-task cloud kcluster
 //
 // # GetLastCreateKubernetesClusterTaskReq
 //
@@ -235,8 +228,7 @@ func (e *ClusterHandler) GetLastAddKubernetesClusterTask(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
-	task, err := e.cluster.GetLastCreateKubernetesTask(eid, req.ProviderName)
+	task, err := e.cluster.GetLastCreateKubernetesTask(req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -246,7 +238,7 @@ func (e *ClusterHandler) GetLastAddKubernetesClusterTask(ctx *gin.Context) {
 
 // GetAddKubernetesClusterTask returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/ck-task/{taskID} cloud kcluster
+// swagger:route GET /enterprise-server/api/v1ck-task/{taskID} cloud kcluster
 //
 // # GetLastCreateKubernetesClusterTaskReq
 //
@@ -261,9 +253,8 @@ func (e *ClusterHandler) GetLastAddKubernetesClusterTask(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) GetAddKubernetesClusterTask(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	taskID := ctx.Param("taskID")
-	task, err := e.cluster.GetCreateKubernetesTask(eid, taskID)
+	task, err := e.cluster.GetCreateKubernetesTask(taskID)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -273,7 +264,7 @@ func (e *ClusterHandler) GetAddKubernetesClusterTask(ctx *gin.Context) {
 
 // GetTaskEventList returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/ck-task/{taskID}/events cloud kcluster
+// swagger:route GET /enterprise-server/api/v1ck-task/{taskID}/events cloud kcluster
 //
 // # GetTaskEventListReq
 //
@@ -288,9 +279,8 @@ func (e *ClusterHandler) GetAddKubernetesClusterTask(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) GetTaskEventList(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	taskID := ctx.Param("taskID")
-	events, err := e.cluster.ListTaskEvent(eid, taskID)
+	events, err := e.cluster.ListTaskEvent(taskID)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -306,8 +296,7 @@ func (e *ClusterHandler) AddAccessKey(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
-	clusters, err := e.cluster.AddAccessKey(eid, req)
+	clusters, err := e.cluster.AddAccessKey(req)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -323,19 +312,18 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
-	access, err := e.cluster.GetByProviderAndEnterprise(req.ProviderName, eid)
+	access, err := e.cluster.GetByProvider(req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
-	access.SecretKey = md5util.Md5Crypt(access.SecretKey, access.EnterpriseID)
+	access.SecretKey = md5util.Md5Crypt(access.SecretKey, "")
 	ginutil.JSON(ctx, access, nil)
 }
 
 // GetInitWutongTask returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
+// swagger:route GET /enterprise-server/api/v1init-task/{clusterID} cloud init
 //
 // # GetInitWutongTaskReq
 //
@@ -350,7 +338,6 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) GetInitWutongTask(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
 	var req v1.GetInitWutongTaskReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -358,13 +345,13 @@ func (e *ClusterHandler) GetInitWutongTask(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	task, err := e.cluster.GetInitWutongTaskByClusterID(eid, clusterID, req.ProviderName)
+	task, err := e.cluster.GetInitWutongTaskByClusterID(clusterID, req.ProviderName)
 	ginutil.JSON(ctx, task, err)
 }
 
 // CreateInitWutongTask returns the information of .
 //
-// swagger:route POST /enterprise-server/api/v1/enterprises/{eid}/init-cluster cloud init
+// swagger:route POST /enterprise-server/api/v1init-cluster cloud init
 //
 // # InitWutongRegionReq
 //
@@ -379,14 +366,13 @@ func (e *ClusterHandler) GetInitWutongTask(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) CreateInitWutongTask(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	var req v1.InitWutongRegionReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		logrus.Errorf("bind init wutong body failure %s", err.Error())
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	task, err := e.cluster.InitWutongRegion(ctx.Request.Context(), eid, req)
+	task, err := e.cluster.InitWutongRegion(ctx.Request.Context(), req)
 	if err != nil {
 		ginutil.JSON(ctx, task, err)
 		return
@@ -396,7 +382,7 @@ func (e *ClusterHandler) CreateInitWutongTask(ctx *gin.Context) {
 
 // GetRunningInitWutongTask returns the information of .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
+// swagger:route GET /enterprise-server/api/v1init-task/{clusterID} cloud init
 //
 // Produces:
 // - application/json
@@ -409,8 +395,7 @@ func (e *ClusterHandler) CreateInitWutongTask(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) GetRunningInitWutongTask(ctx *gin.Context) {
-	eid := ctx.Param("eid")
-	tasks, err := e.cluster.GetTaskRunningLists(eid)
+	tasks, err := e.cluster.GetTaskRunningLists()
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -420,7 +405,7 @@ func (e *ClusterHandler) GetRunningInitWutongTask(ctx *gin.Context) {
 
 // GetRegionConfig get region config file
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/regionconfig cloud kcluster
+// swagger:route GET /enterprise-server/api/v1kclusters/{clusterID}/regionconfig cloud kcluster
 //
 // # GetRegionConfigReq
 //
@@ -441,9 +426,8 @@ func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	configs, err := e.cluster.GetRegionConfig(eid, clusterID, req.ProviderName)
+	configs, err := e.cluster.GetRegionConfig(clusterID, req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -454,7 +438,7 @@ func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 
 // UpdateInitWutongTaskStatus get region config file
 //
-// swagger:route PUT /enterprise-server/api/v1/enterprises/{eid}/init-tasks/{taskID}/status cloud init
+// swagger:route PUT /enterprise-server/api/v1init-tasks/{taskID}/status cloud init
 //
 // # UpdateInitWutongTaskStatusReq
 //
@@ -475,9 +459,8 @@ func (e *ClusterHandler) UpdateInitWutongTaskStatus(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	eid := ctx.Param("eid")
 	taskID := ctx.Param("taskID")
-	task, err := e.cluster.UpdateInitWutongTaskStatus(eid, taskID, req.Status)
+	task, err := e.cluster.UpdateInitWutongTaskStatus(taskID, req.Status)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -504,7 +487,7 @@ func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
 
 // GetLogContent get rke create kubernetes log
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/create_log cloud init
+// swagger:route GET /enterprise-server/api/v1kclusters/{clusterID}/create_log cloud init
 //
 // Produces:
 // - application/json
@@ -515,7 +498,7 @@ func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
 // Responses:
 // 200: body:GetLogContentRes
 func (e *ClusterHandler) GetLogContent(ctx *gin.Context) {
-	cluster, err := e.cluster.GetCluster("rke", ctx.Param("eid"), ctx.Param("clusterID"))
+	cluster, err := e.cluster.GetCluster("rke", ctx.Param("clusterID"))
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -529,7 +512,7 @@ func (e *ClusterHandler) GetLogContent(ctx *gin.Context) {
 
 // ReInstallKubernetesCluster retry install rke cluster .
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/reinstall cloud kcluster
+// swagger:route GET /enterprise-server/api/v1kclusters/{clusterID}/reinstall cloud kcluster
 //
 // Produces:
 // - application/json
@@ -542,7 +525,7 @@ func (e *ClusterHandler) GetLogContent(ctx *gin.Context) {
 // 400: body:Reponse
 // 500: body:Reponse
 func (e *ClusterHandler) ReInstallKubernetesCluster(ctx *gin.Context) {
-	task, err := e.cluster.InstallCluster(ctx.Param("eid"), ctx.Param("clusterID"))
+	task, err := e.cluster.InstallCluster(ctx.Param("clusterID"))
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -552,7 +535,7 @@ func (e *ClusterHandler) ReInstallKubernetesCluster(ctx *gin.Context) {
 
 // GetKubeConfig get kubernetes cluster config
 //
-// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/kubeconfig cloud init
+// swagger:route GET /enterprise-server/api/v1kclusters/{clusterID}/kubeconfig cloud init
 //
 // # GetRegionConfigReq
 //
@@ -571,7 +554,7 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	kubeconfig, err := e.cluster.GetKubeConfig(ctx.Param("eid"), ctx.Param("clusterID"), req.ProviderName)
+	kubeconfig, err := e.cluster.GetKubeConfig(ctx.Param("clusterID"), req.ProviderName)
 	if err != nil {
 		if strings.Contains(err.Error(), "record not found") {
 			ginutil.JSON(ctx, nil, bcode.NotFound)
@@ -584,9 +567,8 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 
 // GetWutongClusterConfig -
 func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	_, config := e.cluster.GetWutongClusterConfig(eid, clusterID)
+	_, config := e.cluster.GetWutongClusterConfig(clusterID)
 	if config == "" {
 		config = `
 # apiVersion: wutong.io/v1alpha1
@@ -616,7 +598,7 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #	 domain: wutong.me
 #	 password: 526856c5
 #	 username: admin
-#  installVersion: v1.0.0-stable
+#  installVersion: v1.1.0-stable
 #  ## Specifies the node that performs the component CI task.
 #  nodesForChaos:
 #   - externalIP: 121.89.192.53
@@ -632,7 +614,7 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #  ## Specifies shared storage provider.
 #  wutongVolumeSpecRWX:
 #	 imageRepository: ""
-#	 storageClassName: glusterfs-simple
+#	 storageClassName: nfs
 #  ## Specifies the db connection info of region.
 #  regionDatabase:
 #	 host: 127.0.0.1
@@ -651,7 +633,6 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 
 // SetWutongClusterConfig -
 func (e *ClusterHandler) SetWutongClusterConfig(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
 	var req v1.SetWutongClusterConfigReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -659,7 +640,7 @@ func (e *ClusterHandler) SetWutongClusterConfig(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	err := e.cluster.SetWutongClusterConfig(eid, clusterID, req.Config)
+	err := e.cluster.SetWutongClusterConfig(clusterID, req.Config)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -669,7 +650,6 @@ func (e *ClusterHandler) SetWutongClusterConfig(ctx *gin.Context) {
 
 // UninstallRegion -
 func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
-	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
 	var req v1.UninstallRegionReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -677,7 +657,7 @@ func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	err := e.cluster.UninstallWutongRegion(eid, clusterID, req.ProviderName)
+	err := e.cluster.UninstallWutongRegion(clusterID, req.ProviderName)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
 		return
@@ -690,11 +670,10 @@ func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
 // @ID pruneUpdateRKEConfig
 // @Accept  json
 // @Produce  json
-// @Param eid path string true "the enterprise id"
 // @Param pruneUpdateRKEConfigReq body v1.PruneUpdateRKEConfigReq true "."
 // @Success 200 {object} v1.PruneUpdateRKEConfigResp
 // @Failure 500 {object} ginutil.Result
-// @Router /api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig [POST]
+// @Router /api/v1/kclusters/prune-update-rkeconfig [POST]
 func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 	var req v1.PruneUpdateRKEConfigReq
 	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
@@ -722,16 +701,14 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 // @ID listWutongComponents
 // @Accept  json
 // @Produce  json
-// @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the identify of cluster"
 // @Param providerName query string true "the provider of the cluster"
 // @Success 200 {array} v1.WutongComponent
-// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components [get]
+// @Router /api/v1kclusters/{clusterID}/wutong-components [get]
 func (e *ClusterHandler) listWutongComponents(c *gin.Context) {
-	eid := c.Param("eid")
 	clusterID := c.Param("clusterID")
 	providerName := c.Query("providerName")
-	components, err := e.cluster.ListWutongComponents(c.Request.Context(), eid, clusterID, providerName)
+	components, err := e.cluster.ListWutongComponents(c.Request.Context(), clusterID, providerName)
 	ginutil.JSONv2(c, components, err)
 }
 
@@ -741,16 +718,14 @@ func (e *ClusterHandler) listWutongComponents(c *gin.Context) {
 // @ID listPodEvents
 // @Accept  json
 // @Produce  json
-// @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the identify of cluster"
 // @Param podName path string true "the name of pod"
 // @Param providerName query string true "the provider of the cluster"
 // @Success 200 {array} v1.WutongComponentEvent
-// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/wutong-components/{podName}/events [get]
+// @Router /api/v1kclusters/{clusterID}/wutong-components/{podName}/events [get]
 func (e *ClusterHandler) listPodEvents(c *gin.Context) {
-	eid := c.Param("eid")
 	clusterID := c.Param("clusterID")
 	providerName := c.Query("providerName")
-	components, err := e.cluster.ListPodEvents(c.Request.Context(), eid, clusterID, providerName, c.Param("podName"))
+	components, err := e.cluster.ListPodEvents(c.Request.Context(), clusterID, providerName, c.Param("podName"))
 	ginutil.JSONv2(c, components, err)
 }

@@ -31,7 +31,6 @@ require (
 	golang.org/x/sync v0.0.0-20201207232520-09787c993a3a
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.0.5
-	gorm.io/driver/sqlite v1.1.4
 	gorm.io/gorm v1.21.7
 	helm.sh/helm/v3 v3.5.4
 	k8s.io/api v0.21.0

@@ -30,16 +30,14 @@ var (
 
 // Cluster -
 type Cluster struct {
-	EnterpriseID string `json:"eid"`
-	Name         string `json:"name"`
-	ClusterID    string `json:"clusterID"`
-	KubeConfig   string `json:"kubeConfig"`
-	Provider     string `json:"provider"`
+	Name       string `json:"name"`
+	ClusterID  string `json:"clusterID"`
+	KubeConfig string `json:"kubeConfig"`
+	Provider   string `json:"provider"`
 }
 
 // ClusterTask -
 type ClusterTask struct {
-	EnterpriseID string          `json:"eid"`
 	ClusterID    string          `json:"clusterID"`
 	ProviderName string          `json:"providerName"`
 	TaskID       string          `json:"taskID"`
