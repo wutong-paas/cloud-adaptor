@@ -598,7 +598,7 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #	 domain: wutong.me
 #	 password: 526856c5
 #	 username: admin
-#  installVersion: v1.3.0
+#  installVersion: v1.4.0
 #  ## Specifies the node that performs the component CI task.
 #  nodesForChaos:
 #   - externalIP: 121.89.192.53
