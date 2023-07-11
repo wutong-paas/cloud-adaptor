@@ -98,10 +98,3 @@ func (o *Operator) Install(cluster *wutongv1alpha1.WutongCluster) error {
 	}
 	return nil
 }
-
-func imageFitArch(image string, arch string) string {
-	if arch == "" || arch == RegionArchAmd64 {
-		return image
-	}
-	return fmt.Sprintf("%s-%s", image, arch)
-}

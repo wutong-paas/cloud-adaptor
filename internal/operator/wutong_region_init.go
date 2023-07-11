@@ -134,10 +134,8 @@ func (r *WutongRegionInit) InitWutongRegion(initConfig *v1alpha1.WutongInitConfi
 
 	// helm create wutong operator chart
 	defaultArgs := []string{
-		helmPath, "install", "wutong-operator", "/app/data/helm-charts/wutong-operator", "-n", r.namespace,
-		"--kubeconfig", kubeconfigFileName,
-		"--set", "operator.image.name=" + fmt.Sprintf("%s/wutong-operator", version.InstallImageRepo),
-		"--set", "operator.image.tag=" + imageFitArch(version.OperatorVersion, r.wutongCluster.Spec.Arch)}
+		helmPath, "install", "wutong-operator", "/app/charts/wutong-operator", "-n", r.namespace,
+		"--kubeconfig", kubeconfigFileName}
 	logrus.Infof(strings.Join(defaultArgs, " "))
 	for {
 		var stdout = bytes.NewBuffer(nil)
