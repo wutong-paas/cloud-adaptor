@@ -20,7 +20,7 @@ COPY tools.go tools.go
 
 # Build
 ARG TARGETOS TARGETARCH
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -a -o /cloud-adaptor ./cmd/cloud-adaptor
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH GO111MODULE=on go build -o /cloud-adaptor ./cmd/cloud-adaptor
 
 FROM swr.cn-southwest-2.myhuaweicloud.com/wutong/alpine:3.15
 ARG TARGETARCH
