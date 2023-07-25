@@ -114,7 +114,7 @@ func (c *customAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, er
 	cluster.CurrentVersion = vinfo.String()
 	if !versionutil.CheckVersion(cluster.CurrentVersion) {
 		cluster.Parameters["DisableWutongInit"] = true
-		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Wutong支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
+		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Wutong支持的版本为1.19.x-1.26.x", cluster.CurrentVersion)
 	}
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
 

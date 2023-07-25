@@ -1,3 +1,0 @@
-#!/bin/bash
-
-wget -q https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/amd/helm && chmod +x helm

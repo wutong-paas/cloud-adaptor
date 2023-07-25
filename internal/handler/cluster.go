@@ -32,6 +32,7 @@ import (
 	"github.com/wutong-paas/cloud-adaptor/pkg/bcode"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/ginutil"
 	"github.com/wutong-paas/cloud-adaptor/pkg/util/md5util"
+	"github.com/wutong-paas/cloud-adaptor/version"
 )
 
 // ClusterHandler -
@@ -578,11 +579,8 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #  namespace: wt-system
 # spec:
 #  ## set source build cache mode, default is hostpath, options: pv, hostpath
-#  arch: amd64
 #  cacheMode: hostpath
 #  configCompleted: true
-#  ## Whether to deploy high availability. default is true if the number of nodes is greater than 3.
-#  enableHA: false
 #  ## etcd config, secret must have ca-file、cert-file and key-file keys.
 #  etcdConfig:
 #	 endpoints:
@@ -596,9 +594,9 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #  ## Specifies image hub info, deployment default hub when not set.
 #  imageHub:
 #	 domain: wutong.me
-#	 password: 526856c5
+#	 password: Wutong123456
 #	 username: admin
-#  installVersion: v1.4.0
+#  installVersion: ` + version.WutongRegionVersion + `
 #  ## Specifies the node that performs the component CI task.
 #  nodesForChaos:
 #   - externalIP: 121.89.192.53
@@ -619,7 +617,7 @@ func (e *ClusterHandler) GetWutongClusterConfig(ctx *gin.Context) {
 #  regionDatabase:
 #	 host: 127.0.0.1
 #	 name: region
-#	 password: wutong123456!
+#	 password: Wutong123456
 #	 port: 3306
 #	 username: root
 #  ## Specifies the default component domain name suffix. Not specified will be assigned by default
