@@ -10,7 +10,7 @@ RUN apk add --update apache2-utils && \
   wget https://wutong-paas.obs.cn-east-3.myhuaweicloud.com/amd/helm && chmod +x helm && mv helm /usr/local/bin/helm; \
   fi && \
   helm repo add wutong https://wutong-paas.github.io/helm-charts && helm repo update && \
-  helm pull wutong/wutong-operator --version 1.4.0 --untar --untardir /app/charts
+  helm pull wutong/wutong-operator --version 1.5.0 --untar --untardir /app/charts
 ENV TZ=Asia/Shanghai
 ENV CONFIG_DIR=/app/data/cloudadaptor
 ENV HELM_PATH=/usr/local/bin/helm
