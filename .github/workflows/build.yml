@@ -21,7 +21,7 @@ jobs:
       # - name: Set up Docker Buildx
       #   uses: docker/setup-buildx-action@v2
 
-      - name: Set huaweiyun buildkit image
+      - name: Set SWR buildkit Image
         run: |
           docker buildx create --use --name swrbuilder --driver docker-container --driver-opt image=swr.cn-southwest-2.myhuaweicloud.com/wutong/buildkit:stable
 
