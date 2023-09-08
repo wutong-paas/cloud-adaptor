@@ -2,4 +2,4 @@ data/
 .idea
 .vscode
 vendor
-bin/cloud-adaptor
+bin/

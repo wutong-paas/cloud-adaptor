@@ -34,13 +34,6 @@ type Operator struct {
 	Config
 }
 
-const (
-	// RegionArchAmd64 -
-	RegionArchAmd64 = "amd64" // default
-	// RegionArchArm64 -
-	RegionArchArm64 = "arm64"
-)
-
 // Config operator config
 type Config struct {
 	WutongVersion         string
@@ -97,11 +90,4 @@ func (o *Operator) Install(cluster *wutongv1alpha1.WutongCluster) error {
 		*cluster = old
 	}
 	return nil
-}
-
-func imageFitArch(image string, arch string) string {
-	if arch == "" || arch == RegionArchAmd64 {
-		return image
-	}
-	return fmt.Sprintf("%s-%s", image, arch)
 }
