@@ -2,7 +2,7 @@
 
 WUTONG_REGISTRY=${WUTONG_REGISTRY:-'swr.cn-southwest-2.myhuaweicloud.com/wutong'}
 IMAGE_NAME=wutong-adaptor
-VERSION=v1.10.0-arm64
+VERSION=v1.11.0-arm64
 
 CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -a -o ./bin/arm64/cloud-adaptor ./cmd/cloud-adaptor
 
