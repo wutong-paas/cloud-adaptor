@@ -2,7 +2,7 @@
 
 WUTONG_REGISTRY=${WUTONG_REGISTRY:-'swr.cn-southwest-2.myhuaweicloud.com/wutong'}
 IMAGE_NAME=wutong-adaptor
-VERSION=v1.10.0
+VERSION=v1.11.0
 
 go mod download
 
